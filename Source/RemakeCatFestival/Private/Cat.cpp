@@ -31,7 +31,10 @@ ACat::ACat()
 	CatSpringArm->SetRelativeLocation(FVector(80.0f, 0.0f, 50.0f));
 	CatCameraComponent->SetRelativeLocation(FVector(-90, 0, 100));
 	CatCameraComponent->SetRelativeRotation(FRotator(-20.0f, 0.0f, 0.0f));
+	GetMesh()->SetGenerateOverlapEvents(true);
+	GetMesh()->OnComponentBeginOverlap.AddDynamic(this, &ACat::OnOverlapBegin);
 	escapeFlipFloop = true;
+	isEscaping = false;
 }
 
 // Called when the game starts or when spawned
@@ -55,7 +58,10 @@ void ACat::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	check(PlayerInputComponent);
 	//MoveForward‚Ì“ü—Í‚ª—ˆ‚½‚çMoveForwardŠÖ”‚ðŒÄ‚Ño‚·
 	PlayerInputComponent->BindAxis("MoveForward", this, &ACat::MoveForward);
+
 	PlayerInputComponent->BindAction("Escape", IE_Pressed,this, &ACat::EscapeTwoWays);
+	
+
 }
 
 
@@ -70,17 +76,21 @@ void ACat::MoveForward(float Val)
 
 void ACat::EscapeTwoWays()
 {
-	FTimerDelegate TimerDelegate;
-	TimerDelegate.BindUFunction(this, FName("EscapeTwoWaysMoving"), escapeFlipFloop);
-	GetWorldTimerManager().SetTimer(escapeTimerHandle, TimerDelegate, 0.01f, true);
-	//EscapeTwoWaysMoving(escapeFlipFloop);
+	if (!isEscaping)
+	{
+		FTimerDelegate TimerDelegate;
+		TimerDelegate.BindUFunction(this, FName("EscapeTwoWaysMoving"), escapeFlipFloop);
+		GetWorldTimerManager().SetTimer(escapeTimerHandle, TimerDelegate, 0.001f, true);
+		//EscapeTwoWaysMoving(escapeFlipFloop);
 	
-	escapeFlipFloop = !escapeFlipFloop;
+		escapeFlipFloop = !escapeFlipFloop;
+	}
+
 }
 
 void ACat::EscapeTwoWaysMoving(bool IsRight)
 {
-	const float OffsetPerTime = 10.0f;
+	const float OffsetPerTime = 1.0f;
 	float reverseScale = 1.0f;
 	if (IsRight)
 	{
@@ -90,9 +100,10 @@ void ACat::EscapeTwoWaysMoving(bool IsRight)
 	{
 		reverseScale = 1.0f;
 	}
-	if (escapeOffset <= mEscapeLength)
+	if (escapeOffset < mEscapeLength)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Call SetTimer"));
+		isEscaping = true;
+		
 		FVector addOffset;
 		addOffset = FVector(GetActorLocation().X, GetActorLocation().Y+(reverseScale*OffsetPerTime), GetActorLocation().Z);
 		SetActorLocation(addOffset);
@@ -100,7 +111,13 @@ void ACat::EscapeTwoWaysMoving(bool IsRight)
 	}
 	else
 	{
+		isEscaping = false;
 		GetWorldTimerManager().ClearTimer(escapeTimerHandle);
 		escapeOffset = 0.0f;
 	}
+}
+
+void ACat::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+		UE_LOG(LogTemp, Error, TEXT("Overlap"));
 }

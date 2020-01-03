@@ -20,7 +20,7 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	bool escapeFlipFloop;
+	bool isEscaping;
 	FTimerHandle escapeTimerHandle;
 	float escapeOffset = 0.0f;
 
@@ -37,6 +37,9 @@ public:
 
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = Cat)
+		bool escapeFlipFloop;
+
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = Cat)
 		float mEscapeLength;
 
 	//UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = Cat)
@@ -50,4 +53,8 @@ public:
 
 	UFUNCTION()
 	void EscapeTwoWaysMoving(bool IsRight);
+
+	UFUNCTION()
+		void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
 };
