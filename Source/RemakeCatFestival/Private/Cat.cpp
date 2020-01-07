@@ -2,8 +2,10 @@
 
 
 #include "Cat.h"
+#include "Public/CatInterface.h"
 #include "Components/InputComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "UObject/ConstructorHelpers.h"
@@ -11,28 +13,49 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "TimerManager.h"
 #include "Engine/SkeletalMesh.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 
 // Sets default values
 ACat::ACat()
 {
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> PlayerMeshObj(TEXT("/Game/Cat/Charcter/SK_Cat.SK_Cat"));
+
+	
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
 	GetCapsuleComponent()->InitCapsuleSize(80.0f, 100.0f);
-	GetMesh()->SetSkeletalMesh(PlayerMeshObj.Object);
+
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> PlayerMeshObj(TEXT("/Game/Cat/Charcter/SK_Cat.SK_Cat"));
+	if (PlayerMeshObj.Succeeded())
+	{
+		GetMesh()->SetSkeletalMesh(PlayerMeshObj.Object);
+		static ConstructorHelpers::FClassFinder<UAnimInstance> PlayerAnimBPClass(TEXT("/Game/Cat/Animation/ABP_Cat"));
+		if (PlayerAnimBPClass.Class)
+		{
+			GetMesh()->SetAnimClass(PlayerAnimBPClass.Class);
+		}
+	}
 	GetMesh()->SetRelativeScale3D(FVector(0.25f, 0.25f, 0.25f));
 	GetMesh()->SetRelativeLocation(FVector(0.0f, 0.0f, -90.0f));
 	GetMesh()->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
+
 	CatSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("CatSpringArm"));
 	CatSpringArm->SetupAttachment(GetCapsuleComponent());
+
 	CatCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CatCameraComponent"));
 	CatCameraComponent->SetupAttachment(CatSpringArm);
+
 	CatSpringArm->SetRelativeLocation(FVector(80.0f, 0.0f, 50.0f));
 	CatCameraComponent->SetRelativeLocation(FVector(-90, 0, 100));
 	CatCameraComponent->SetRelativeRotation(FRotator(-20.0f, 0.0f, 0.0f));
-	GetMesh()->SetGenerateOverlapEvents(true);
-	GetMesh()->OnComponentBeginOverlap.AddDynamic(this, &ACat::OnOverlapBegin);
+	
+	BoxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("MeshCollision"));
+	BoxComp->SetupAttachment(GetMesh());
+	BoxComp->SetRelativeLocation(FVector(0.0f, -40.0f, 320.0f));
+	BoxComp->SetRelativeScale3D(FVector(3.0f, 10.0f, 5.5f));
+	BoxComp->OnComponentBeginOverlap.AddDynamic(this, &ACat::OnOverlapBegin);
+
 	escapeFlipFloop = true;
 	isEscaping = false;
 }
@@ -119,5 +142,18 @@ void ACat::EscapeTwoWaysMoving(bool IsRight)
 
 void ACat::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-		UE_LOG(LogTemp, Error, TEXT("Overlap"));
+	FString st = "aaa";
+
+		float a=30.0f;
+		float b=10.0f;
+		bool bIsImplemted = OtherActor->GetClass()->ImplementsInterface(UCatInterface::StaticClass());
+		ICatInterface* Interface = Cast<ICatInterface>(OtherActor);
+
+		
+		if (bIsImplemted)
+		{
+			UE_LOG(LogTemp, Error, TEXT("Overlap %s"),*OtherActor->GetName());
+			Interface->Execute_ReceiveDamage(OtherActor,a);
+		}
+		
 }

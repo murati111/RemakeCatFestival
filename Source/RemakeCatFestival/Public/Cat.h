@@ -42,8 +42,9 @@ public:
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = Cat)
 		float mEscapeLength;
 
-	//UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = Cat)
-		
+
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = Cat)
+		class UBoxComponent* BoxComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* CatCameraComponent;
@@ -56,5 +57,6 @@ public:
 
 	UFUNCTION()
 		void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
 
 };
