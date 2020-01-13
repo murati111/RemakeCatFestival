@@ -13,7 +13,15 @@ UCLASS()
 class REMAKECATFESTIVAL_API AMainGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
+private:
+	FTimerHandle GameTimeHandle;
+	void TimerCount();
+
 public:
 	AMainGameModeBase(const FObjectInitializer& ObjectInitializer);
+	class UMainGameInstance* gameInstance;
+
+protected:
+	virtual void BeginPlay() override;
 
 };
