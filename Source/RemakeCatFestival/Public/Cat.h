@@ -23,6 +23,7 @@ private:
 	bool isEscaping;
 	FTimerHandle escapeTimerHandle;
 	float escapeOffset = 0.0f;
+	class UMainGameInstance gameInstance;
 
 public:	
 	// Called every frame
@@ -43,7 +44,7 @@ public:
 		float mEscapeLength;
 
 
-	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = Cat)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Cat)
 		class UBoxComponent* BoxComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))

@@ -3,6 +3,7 @@
 
 #include "Cat.h"
 #include "Public/CatInterface.h"
+#include "Public/MainGameInstance.h"
 #include "Components/InputComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/BoxComponent.h"
@@ -14,6 +15,7 @@
 #include "TimerManager.h"
 #include "Engine/SkeletalMesh.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Animation/AnimInstance.h"
 
 
 // Sets default values
@@ -56,8 +58,11 @@ ACat::ACat()
 	BoxComp->SetRelativeScale3D(FVector(3.0f, 10.0f, 5.5f));
 	BoxComp->OnComponentBeginOverlap.AddDynamic(this, &ACat::OnOverlapBegin);
 
+	
 	escapeFlipFloop = true;
 	isEscaping = false;
+
+
 }
 
 // Called when the game starts or when spawned
@@ -146,6 +151,7 @@ void ACat::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* Othe
 
 		float a=30.0f;
 		float b=10.0f;
+		int32 dp = 0;
 		bool bIsImplemted = OtherActor->GetClass()->ImplementsInterface(UCatInterface::StaticClass());
 		ICatInterface* Interface = Cast<ICatInterface>(OtherActor);
 
@@ -153,7 +159,8 @@ void ACat::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* Othe
 		if (bIsImplemted)
 		{
 			UE_LOG(LogTemp, Error, TEXT("Overlap %s"),*OtherActor->GetName());
-			Interface->Execute_ReceiveDamage(OtherActor,a);
+			Interface->Execute_ReceiveDamage(OtherActor,a,dp);
+			
 		}
-		
+
 }
