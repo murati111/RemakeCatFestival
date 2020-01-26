@@ -21,6 +21,9 @@ public:
 	AMainGameModeBase(const FObjectInitializer& ObjectInitializer);
 	class UMainGameInstance* gameInstance;
 
+	UFUNCTION()
+		void AddDashPoint(int32 dp);
+
 protected:
 	virtual void BeginPlay() override;
 

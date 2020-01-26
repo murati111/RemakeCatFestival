@@ -3,7 +3,7 @@
 
 #include "Cat.h"
 #include "Public/CatInterface.h"
-#include "Public/MainGameInstance.h"
+#include "Public/MainGameModeBase.h"
 #include "Components/InputComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/BoxComponent.h"
@@ -16,6 +16,7 @@
 #include "Engine/SkeletalMesh.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
 
 
 // Sets default values
@@ -25,7 +26,7 @@ ACat::ACat()
 	
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
+	
 	GetCapsuleComponent()->InitCapsuleSize(80.0f, 100.0f);
 
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> PlayerMeshObj(TEXT("/Game/Cat/Charcter/SK_Cat.SK_Cat"));
@@ -33,10 +34,17 @@ ACat::ACat()
 	{
 		GetMesh()->SetSkeletalMesh(PlayerMeshObj.Object);
 		static ConstructorHelpers::FClassFinder<UAnimInstance> PlayerAnimBPClass(TEXT("/Game/Cat/Animation/ABP_Cat"));
+		
 		if (PlayerAnimBPClass.Class)
 		{
 			GetMesh()->SetAnimClass(PlayerAnimBPClass.Class);
 		}
+		static ConstructorHelpers::FObjectFinder<UAnimMontage> DamageAnimMontageObj(TEXT("/Game/Cat/Animation/AM_Damage.AM_Damage"));
+		if (DamageAnimMontageObj.Succeeded())
+		{
+			DamageAnimation = DamageAnimMontageObj.Object;
+		}
+
 	}
 	GetMesh()->SetRelativeScale3D(FVector(0.25f, 0.25f, 0.25f));
 	GetMesh()->SetRelativeLocation(FVector(0.0f, 0.0f, -90.0f));
@@ -58,9 +66,9 @@ ACat::ACat()
 	BoxComp->SetRelativeScale3D(FVector(3.0f, 10.0f, 5.5f));
 	BoxComp->OnComponentBeginOverlap.AddDynamic(this, &ACat::OnOverlapBegin);
 
-	
 	escapeFlipFloop = true;
 	isEscaping = false;
+	isDamaging = false;
 
 
 }
@@ -69,7 +77,7 @@ ACat::ACat()
 void ACat::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	gameMode = Cast<AMainGameModeBase>(GetWorld()->GetAuthGameMode());
 }
 
 // Called every frame
@@ -97,8 +105,12 @@ void ACat::MoveForward(float Val)
 {
 	if (Val > 0)
 	{
+		if (!isDamaging)
+		{
+			AddMovementInput(GetActorForwardVector(), Val);
+		}
 		//GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-		AddMovementInput(GetActorForwardVector(), Val);
+		
 	}
 }
 
@@ -106,12 +118,16 @@ void ACat::EscapeTwoWays()
 {
 	if (!isEscaping)
 	{
-		FTimerDelegate TimerDelegate;
-		TimerDelegate.BindUFunction(this, FName("EscapeTwoWaysMoving"), escapeFlipFloop);
-		GetWorldTimerManager().SetTimer(escapeTimerHandle, TimerDelegate, 0.001f, true);
-		//EscapeTwoWaysMoving(escapeFlipFloop);
+		if (!isDamaging)
+		{
+			FTimerDelegate TimerDelegate;
+			TimerDelegate.BindUFunction(this, FName("EscapeTwoWaysMoving"), escapeFlipFloop);
+			GetWorldTimerManager().SetTimer(escapeTimerHandle, TimerDelegate, 0.001f, true);
+			//EscapeTwoWaysMoving(escapeFlipFloop);
 	
-		escapeFlipFloop = !escapeFlipFloop;
+			escapeFlipFloop = !escapeFlipFloop;
+		}
+
 	}
 
 }
@@ -159,8 +175,37 @@ void ACat::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* Othe
 		if (bIsImplemted)
 		{
 			UE_LOG(LogTemp, Error, TEXT("Overlap %s"),*OtherActor->GetName());
-			Interface->Execute_ReceiveDamage(OtherActor,a,dp);
+			Interface->Execute_ReceiveDamage(OtherActor,dp);
+			if (OtherActor->ActorHasTag("Item"))
+			{
+				gameMode->AddDashPoint(dp);
+			}
+			else if (OtherActor->ActorHasTag("Obstacle"))
+			{
+				PlayAnimMontage(DamageAnimation);
+				isDamaging = true;
+				Damage();
+			}
 			
 		}
 
+}
+
+void ACat::Damage()
+{
+	GetWorldTimerManager().SetTimer(damageTimerHandle, this, &ACat::DamageFlashing, 0.1f, true);
+}
+
+void ACat::DamageFlashing()
+{
+	damageTime += 0.1f;
+	isDamaging = true;
+	SetActorHiddenInGame(damageFlashFlipFloop);
+	damageFlashFlipFloop = !damageFlashFlipFloop;
+	if (maxDamageTime <= damageTime)
+	{
+		isDamaging = false;
+		SetActorHiddenInGame(false);
+		GetWorldTimerManager().ClearTimer(damageTimerHandle);
+	}
 }

@@ -6,6 +6,7 @@
 #include "Public/CatController.h"
 #include "TimerManager.h"
 #include "Public/MainGameInstance.h"
+#include "Engine.h"
 
 AMainGameModeBase::AMainGameModeBase(const FObjectInitializer& ObjectInitializer)
 {
@@ -27,5 +28,10 @@ void AMainGameModeBase::BeginPlay()
 void AMainGameModeBase::TimerCount()
 {
 	gameInstance->Time += 0.01f;
-	UE_LOG(LogTemp, Error, TEXT("Overlap %f"), gameInstance->Time);
+	//UE_LOG(LogTemp, Error, TEXT("Overlap %f"), gameInstance->Time);
+}
+
+void AMainGameModeBase::AddDashPoint(int32 dp)
+{
+	gameInstance->DashPoint += dp;
 }

@@ -21,9 +21,15 @@ protected:
 
 private:
 	bool isEscaping;
+	bool isDamaging;
+	bool damageFlashFlipFloop;
 	FTimerHandle escapeTimerHandle;
+	FTimerHandle damageTimerHandle;
+	float damageTime = 0.0f;
+	
 	float escapeOffset = 0.0f;
-	class UMainGameInstance gameInstance;
+
+	void DamageFlashing();
 
 public:	
 	// Called every frame
@@ -35,6 +41,11 @@ public:
 	void MoveForward(float Val);
 
 	void EscapeTwoWays();
+	UPROPERTY()
+		class AMainGameModeBase* gameMode;
+
+	UPROPERTY()
+		class UAnimMontage* DamageAnimation;
 
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = Cat)
@@ -43,21 +54,26 @@ public:
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = Cat)
 		float mEscapeLength;
 
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = Cat)
+		float maxDamageTime = 1.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Cat)
 		class UBoxComponent* BoxComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UCameraComponent* CatCameraComponent;
+		class UCameraComponent* CatCameraComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = SpringArm, meta = (AllowPrivateAccess = "true"))
 		class USpringArmComponent* CatSpringArm;
 
 	UFUNCTION()
-	void EscapeTwoWaysMoving(bool IsRight);
+		void EscapeTwoWaysMoving(bool IsRight);
 
 	UFUNCTION()
 		void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+		void Damage();
 
 
 };
