@@ -12,6 +12,10 @@
 // Sets default values
 ASuperItem::ASuperItem()
 {
+	TArray<FName> tagsTmp;
+	tagsTmp.Add(ActorTag);
+	Tags = tagsTmp;
+
 	USceneComponent* NewSceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 	if (NewSceneComponent != nullptr)
 	{
@@ -42,8 +46,10 @@ void ASuperItem::OnConstruction(const FTransform& Transform)
 
 }
 
-void ASuperItem::ReceiveDamage_Implementation(float A,int32& point)
+void ASuperItem::ReceiveDamage_Implementation(int32& point)
 {
+
+	UE_LOG(LogTemp, Log, TEXT("MyIntValue"));
 	point = DashPoint;
 	Destroy();
 }

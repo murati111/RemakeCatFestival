@@ -25,6 +25,9 @@ private:
 	void PlaneRotation();
 
 public:	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Item)
+		FName ActorTag = "Item";
+
 	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite, Category = Item)
 	class UStaticMeshComponent* Plane;
 
@@ -42,7 +45,7 @@ public:
 	virtual void OnConstruction(const FTransform& Transform) override;
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "CatInterface")
-		void ReceiveDamage(float A, int32 &point);
-		virtual void ReceiveDamage_Implementation(float A, int32& point);
+		void ReceiveDamage(int32 &point);
+		virtual void ReceiveDamage_Implementation(int32& point);
 
 };
