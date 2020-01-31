@@ -25,6 +25,7 @@ private:
 	bool damageFlashFlipFloop;
 	FTimerHandle escapeTimerHandle;
 	FTimerHandle damageTimerHandle;
+	FTimerHandle disableInputTimerHandle;
 	float damageTime = 0.0f;
 	
 	float escapeOffset = 0.0f;

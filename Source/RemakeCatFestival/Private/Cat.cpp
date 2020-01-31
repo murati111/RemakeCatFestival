@@ -174,7 +174,7 @@ void ACat::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* Othe
 		
 		if (bIsImplemted)
 		{
-			UE_LOG(LogTemp, Error, TEXT("Overlap %s"),*OtherActor->GetName());
+			
 			Interface->Execute_ReceiveDamage(OtherActor,dp);
 			if (OtherActor->ActorHasTag("Item"))
 			{
@@ -185,6 +185,17 @@ void ACat::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* Othe
 				PlayAnimMontage(DamageAnimation);
 				isDamaging = true;
 				Damage();
+			}
+			else if (OtherActor->ActorHasTag("Goal"))
+			{
+				gameMode->TimerStopAndRecord();
+
+				//1秒経過後インプットをしないように
+				APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+				FTimerDelegate TimerDelegate;
+				TimerDelegate.BindUFunction(this, FName("DisableInput"), PlayerController);
+				GetWorldTimerManager().SetTimer(disableInputTimerHandle, TimerDelegate, 2.0f, false);
+
 			}
 			
 		}
