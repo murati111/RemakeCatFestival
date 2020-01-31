@@ -24,6 +24,9 @@ public:
 	UFUNCTION()
 		void AddDashPoint(int32 dp);
 
+	UFUNCTION()
+		void TimerStopAndRecord();
+
 protected:
 	virtual void BeginPlay() override;
 

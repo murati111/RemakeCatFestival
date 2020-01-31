@@ -12,19 +12,35 @@
 
 USTRUCT(Blueprinttype)
 struct FCatGhost {
-	GENERATED_BODY()
+	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY()
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "Cat")
+		float RecordTime;
+
+	UPROPERTY(EditAnyWhere,BlueprintReadWrite,Category="Cat")
 		TArray<FVector> Position;
 		
-	UPROPERTY()
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "Cat")
 		TArray<FRotator> Rotation;
 
-	UPROPERTY()
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "Cat")
 		TArray<float> Speed;
 
-	UPROPERTY()
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "Cat")
 		TArray<bool> IsStop;
+
+	FCatGhost()
+	{
+		RecordTime = 0.0f;
+	}
+	FCatGhost(float InTime,TArray<FVector> InPosition, TArray<FRotator> InRotation, TArray<float> InSpeed, TArray<bool> InIsStop)
+	{
+		RecordTime = InTime;
+		Position = InPosition;
+		Rotation = InRotation;
+		Speed = InSpeed;
+		IsStop = InIsStop;
+	}
 };
 
 UCLASS()
@@ -34,7 +50,7 @@ class REMAKECATFESTIVAL_API UMainGameInstance : public UGameInstance
 	
 public:
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = GameData)
-		float Time = 0.0f;
+		float CurrentTime = 0.0f;
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = GameData)
 		int32 DashPoint = 0;

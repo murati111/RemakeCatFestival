@@ -22,16 +22,26 @@ AMainGameModeBase::AMainGameModeBase(const FObjectInitializer& ObjectInitializer
 
 void AMainGameModeBase::BeginPlay()
 {
+	Super::BeginPlay();
 	GetWorldTimerManager().SetTimer(GameTimeHandle,this,&AMainGameModeBase::TimerCount,0.01f, true);
 }
 
 void AMainGameModeBase::TimerCount()
 {
-	gameInstance->Time += 0.01f;
+	gameInstance->CurrentTime += 0.01f;
 	//UE_LOG(LogTemp, Error, TEXT("Overlap %f"), gameInstance->Time);
 }
+
+
 
 void AMainGameModeBase::AddDashPoint(int32 dp)
 {
 	gameInstance->DashPoint += dp;
 }
+
+void AMainGameModeBase::TimerStopAndRecord()
+{
+	GetWorldTimerManager().ClearTimer(GameTimeHandle);
+	
+}
+
