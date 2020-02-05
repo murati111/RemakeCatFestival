@@ -18,29 +18,13 @@ struct FCatGhost {
 		float RecordTime;
 
 	UPROPERTY(EditAnyWhere,BlueprintReadWrite,Category="Cat")
-		TArray<FVector> Position;
-		
-	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "Cat")
-		TArray<FRotator> Rotation;
+		TArray<FVector> Positions;
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "Cat")
-		TArray<float> Speed;
+		TArray<float> Speeds;
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "Cat")
-		TArray<bool> IsStop;
-
-	FCatGhost()
-	{
-		RecordTime = 0.0f;
-	}
-	FCatGhost(float InTime,TArray<FVector> InPosition, TArray<FRotator> InRotation, TArray<float> InSpeed, TArray<bool> InIsStop)
-	{
-		RecordTime = InTime;
-		Position = InPosition;
-		Rotation = InRotation;
-		Speed = InSpeed;
-		IsStop = InIsStop;
-	}
+		TArray<bool> IsStops;
 };
 
 UCLASS()
@@ -55,8 +39,13 @@ public:
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = GameData)
 		int32 DashPoint = 0;
 
-	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = GameData)
-		FCatGhost GhostData;
+	UPROPERTY(VisibleAnyWhere, BlueprintReadWrite, Category = GameData)
+		FCatGhost LoadingGhostData;
+
+	UPROPERTY(VisibleAnyWhere, BlueprintReadWrite, Category = GameData)
+		FCatGhost RecordingGhostData;
 
 	static UMainGameInstance* GetInstance();
+	void AddGhostData(const FVector Position, const float Speed, const bool IsStop);
+	void SetRecordTime();
 };

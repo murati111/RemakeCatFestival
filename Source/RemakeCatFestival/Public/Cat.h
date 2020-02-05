@@ -21,7 +21,7 @@ protected:
 
 private:
 	bool isEscaping;
-	bool isDamaging;
+	bool bIsDamaging;
 	bool damageFlashFlipFloop;
 	FTimerHandle escapeTimerHandle;
 	FTimerHandle damageTimerHandle;
@@ -32,9 +32,15 @@ private:
 
 	void DamageFlashing();
 
+	class APlayerController* PlayerController;
+
 public:	
+	bool bIsHitObscle;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	UFUNCTION()
+	void CanInput(bool bInputMode);
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -75,6 +81,8 @@ public:
 
 	UFUNCTION()
 		void Damage();
+
+
 
 
 };

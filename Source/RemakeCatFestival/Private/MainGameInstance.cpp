@@ -15,3 +15,14 @@ UMainGameInstance* UMainGameInstance::GetInstance()
 	}
 	return instance;
 }
+
+void UMainGameInstance::AddGhostData(const FVector Position, const float Speed, const bool IsStop)
+{
+	RecordingGhostData.Positions.Add(Position);
+	RecordingGhostData.Speeds.Add(Speed);
+	RecordingGhostData.IsStops.Add(IsStop);
+}
+void UMainGameInstance::SetRecordTime()
+{
+	RecordingGhostData.RecordTime = CurrentTime;
+}

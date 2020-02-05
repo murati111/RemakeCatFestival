@@ -68,8 +68,8 @@ ACat::ACat()
 
 	escapeFlipFloop = true;
 	isEscaping = false;
-	isDamaging = false;
-
+	bIsDamaging = false;
+	bIsHitObscle = false;
 
 }
 
@@ -78,6 +78,8 @@ void ACat::BeginPlay()
 {
 	Super::BeginPlay();
 	gameMode = Cast<AMainGameModeBase>(GetWorld()->GetAuthGameMode());
+	PlayerController = GetWorld()->GetFirstPlayerController();
+	UE_LOG(LogTemp, Log, TEXT("CatBegin"));
 }
 
 // Called every frame
@@ -85,6 +87,18 @@ void ACat::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void ACat::CanInput(bool bInputMode)
+{
+	if (bInputMode)
+	{
+		EnableInput(PlayerController);
+	}
+	else
+	{
+		DisableInput(PlayerController);
+	}
 }
 
 // Called to bind functionality to input
@@ -105,7 +119,7 @@ void ACat::MoveForward(float Val)
 {
 	if (Val > 0)
 	{
-		if (!isDamaging)
+		if (!bIsDamaging)
 		{
 			AddMovementInput(GetActorForwardVector(), Val);
 		}
@@ -118,7 +132,7 @@ void ACat::EscapeTwoWays()
 {
 	if (!isEscaping)
 	{
-		if (!isDamaging)
+		if (!bIsDamaging)
 		{
 			FTimerDelegate TimerDelegate;
 			TimerDelegate.BindUFunction(this, FName("EscapeTwoWaysMoving"), escapeFlipFloop);
@@ -163,7 +177,6 @@ void ACat::EscapeTwoWaysMoving(bool IsRight)
 
 void ACat::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	FString st = "aaa";
 
 		float a=30.0f;
 		float b=10.0f;
@@ -183,19 +196,20 @@ void ACat::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* Othe
 			else if (OtherActor->ActorHasTag("Obstacle"))
 			{
 				PlayAnimMontage(DamageAnimation);
-				isDamaging = true;
+				bIsDamaging = true;
+				bIsHitObscle = true;
+				bIsHitObscle = false;
 				Damage();
 			}
 			else if (OtherActor->ActorHasTag("Goal"))
 			{
-				gameMode->TimerStopAndRecord();
-
+				
+				gameMode->RaceStop();
 				//1秒経過後インプットをしないように
-				APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 				FTimerDelegate TimerDelegate;
 				TimerDelegate.BindUFunction(this, FName("DisableInput"), PlayerController);
 				GetWorldTimerManager().SetTimer(disableInputTimerHandle, TimerDelegate, 2.0f, false);
-
+				
 			}
 			
 		}
@@ -210,12 +224,12 @@ void ACat::Damage()
 void ACat::DamageFlashing()
 {
 	damageTime += 0.1f;
-	isDamaging = true;
+	bIsDamaging = true;
 	SetActorHiddenInGame(damageFlashFlipFloop);
 	damageFlashFlipFloop = !damageFlashFlipFloop;
 	if (maxDamageTime <= damageTime)
 	{
-		isDamaging = false;
+		bIsDamaging = false;
 		SetActorHiddenInGame(false);
 		GetWorldTimerManager().ClearTimer(damageTimerHandle);
 	}

@@ -14,4 +14,10 @@ class REMAKECATFESTIVAL_API ACatController : public APlayerController
 {
 	GENERATED_BODY()
 
+public:
+	UPROPERTY()
+		class AMainGameModeBase* gameMode;
+
+protected:
+	virtual void BeginPlay() override;
 };
