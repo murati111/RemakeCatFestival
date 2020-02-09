@@ -51,6 +51,10 @@ void ASuperItem::ReceiveDamage_Implementation(int32& point)
 
 	UE_LOG(LogTemp, Log, TEXT("MyIntValue"));
 	point = DashPoint;
+	if (ItemGetSound != nullptr)
+	{
+		UGameplayStatics::PlaySound2D(this, ItemGetSound);
+	}
 	Destroy();
 }
 
