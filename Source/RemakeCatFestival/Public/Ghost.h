@@ -15,7 +15,7 @@ class REMAKECATFESTIVAL_API AGhost : public ACharacter
 private:
 	void LoadingGhostData();
 	FTimerHandle LoadingTimeHandle;
-	int64 count = 0;
+	int32 count = 0;
 
 public:
 	// Sets default values for this character's properties
@@ -25,12 +25,13 @@ public:
 	UPROPERTY()
 		class AMainGameModeBase* GameMode;
 
-	UPROPERTY()
+	UPROPERTY(EditAnyWhere,BlueprintReadWrite,Category="Ghost")
 		class UAnimMontage* DamageAnimation;
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "Ghost")
 		float Speed;
 
+	UFUNCTION(BlueprintCallable)
 	void StartLoadingGhost();
 	void StopLoadingGhost();
 protected:
