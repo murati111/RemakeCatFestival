@@ -3,6 +3,7 @@
 
 #include "Goal.h"
 #include "Components/BoxComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AGoal::AGoal()
@@ -40,5 +41,6 @@ void AGoal::Tick(float DeltaTime)
 
 void AGoal::ReceiveDamage_Implementation(int32& point)
 {
+	UGameplayStatics::PlaySound2D(this, GoalSE);
 	point = 0;
 }

@@ -30,7 +30,8 @@ public:
 		class USceneComponent* NewRootComponent;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Goal)
 		FName ActorTag = "Goal";
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+		class USoundBase* GoalSE;
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "CatInterface")
 		void ReceiveDamage(int32& point);
 	virtual void ReceiveDamage_Implementation(int32& point);
