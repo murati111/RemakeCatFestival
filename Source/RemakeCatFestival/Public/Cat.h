@@ -20,22 +20,26 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	bool isEscaping;
+	bool bIsEscaping;
 	bool bIsDamaging;
-	bool damageFlashFlipFloop;
-	FTimerHandle escapeTimerHandle;
-	FTimerHandle damageTimerHandle;
-	FTimerHandle disableInputTimerHandle;
-	float damageTime = 0.0f;
-	
-	float escapeOffset = 0.0f;
+	bool bDamageFlashFlipFloop;
+	FTimerHandle EscapeTimerHandle;
+	FTimerHandle DamageTimerHandle;
+	FTimerHandle HitObscaleTimeHandle;
+	FTimerHandle DisableInputTimerHandle;
+	float DamageTime = 0.0f;
+	float EscapeOffset = 0.0f;
+	UPROPERTY()
+		class APlayerController* PlayerController;
 
 	void DamageFlashing();
+	void AfterHitObscale();
+	void AfterGoalEvent();
 
-	class APlayerController* PlayerController;
 
 public:	
-	bool bIsHitObscle;
+	UPROPERTY(VisibleAnyWhere,BlueprintReadWrite,Category=Cat)
+		bool bIsHitObscle;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -49,20 +53,22 @@ public:
 
 	void EscapeTwoWays();
 	UPROPERTY()
-		class AMainGameModeBase* gameMode;
+		class AMainGameModeBase* GameMode;
 
 	UPROPERTY()
 		class UAnimMontage* DamageAnimation;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+		class USoundBase* EscapeSound;
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = Cat)
-		bool escapeFlipFloop;
+		bool EscapeFlipFloop;
 
-	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = Cat)
-		float mEscapeLength;
+	UPROPERTY(EditAnyWhere, BlueprintReadOnly, Category = Cat)
+		float EscapeLength;
 
-	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = Cat)
-		float maxDamageTime = 1.0f;
+	UPROPERTY(EditAnyWhere, BlueprintReadOnly, Category = Cat)
+		float MaxDamageTime = 1.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Cat)
 		class UBoxComponent* BoxComp;

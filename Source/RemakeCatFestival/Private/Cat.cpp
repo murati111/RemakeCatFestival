@@ -14,7 +14,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "TimerManager.h"
 #include "Engine/SkeletalMesh.h"
-#include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/GameplayStatics.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 
@@ -66,8 +66,8 @@ ACat::ACat()
 	BoxComp->SetRelativeScale3D(FVector(3.0f, 10.0f, 5.5f));
 	BoxComp->OnComponentBeginOverlap.AddDynamic(this, &ACat::OnOverlapBegin);
 
-	escapeFlipFloop = true;
-	isEscaping = false;
+	EscapeFlipFloop = true;
+	bIsEscaping = false;
 	bIsDamaging = false;
 	bIsHitObscle = false;
 
@@ -77,7 +77,7 @@ ACat::ACat()
 void ACat::BeginPlay()
 {
 	Super::BeginPlay();
-	gameMode = Cast<AMainGameModeBase>(GetWorld()->GetAuthGameMode());
+	GameMode = Cast<AMainGameModeBase>(GetWorld()->GetAuthGameMode());
 	PlayerController = GetWorld()->GetFirstPlayerController();
 	UE_LOG(LogTemp, Log, TEXT("CatBegin"));
 }
@@ -130,16 +130,19 @@ void ACat::MoveForward(float Val)
 
 void ACat::EscapeTwoWays()
 {
-	if (!isEscaping)
+	if (!bIsEscaping)
 	{
 		if (!bIsDamaging)
 		{
 			FTimerDelegate TimerDelegate;
-			TimerDelegate.BindUFunction(this, FName("EscapeTwoWaysMoving"), escapeFlipFloop);
-			GetWorldTimerManager().SetTimer(escapeTimerHandle, TimerDelegate, 0.001f, true);
-			//EscapeTwoWaysMoving(escapeFlipFloop);
-	
-			escapeFlipFloop = !escapeFlipFloop;
+			TimerDelegate.BindUFunction(this, FName("EscapeTwoWaysMoving"), EscapeFlipFloop);
+			GetWorldTimerManager().SetTimer(EscapeTimerHandle, TimerDelegate, 0.001f, true);
+			//EscapeTwoWaysMoving(EscapeFlipFloop);
+			if (EscapeSound != nullptr)
+			{
+				UGameplayStatics::PlaySound2D(this, EscapeSound);
+			}
+			EscapeFlipFloop = !EscapeFlipFloop;
 		}
 
 	}
@@ -158,28 +161,26 @@ void ACat::EscapeTwoWaysMoving(bool IsRight)
 	{
 		reverseScale = 1.0f;
 	}
-	if (escapeOffset < mEscapeLength)
+	if (EscapeOffset < EscapeLength)
 	{
-		isEscaping = true;
+		bIsEscaping = true;
 		
 		FVector addOffset;
 		addOffset = FVector(GetActorLocation().X, GetActorLocation().Y+(reverseScale*OffsetPerTime), GetActorLocation().Z);
 		SetActorLocation(addOffset);
-		escapeOffset += OffsetPerTime;
+		EscapeOffset += OffsetPerTime;
 	}
 	else
 	{
-		isEscaping = false;
-		GetWorldTimerManager().ClearTimer(escapeTimerHandle);
-		escapeOffset = 0.0f;
+		bIsEscaping = false;
+		GetWorldTimerManager().ClearTimer(EscapeTimerHandle);
+		EscapeOffset = 0.0f;
 	}
 }
 
 void ACat::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 
-		float a=30.0f;
-		float b=10.0f;
 		int32 dp = 0;
 		bool bIsImplemted = OtherActor->GetClass()->ImplementsInterface(UCatInterface::StaticClass());
 		ICatInterface* Interface = Cast<ICatInterface>(OtherActor);
@@ -191,46 +192,53 @@ void ACat::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* Othe
 			Interface->Execute_ReceiveDamage(OtherActor,dp);
 			if (OtherActor->ActorHasTag("Item"))
 			{
-				gameMode->AddDashPoint(dp);
+				GameMode->AddDashPoint(dp);
 			}
 			else if (OtherActor->ActorHasTag("Obstacle"))
 			{
 				PlayAnimMontage(DamageAnimation);
 				bIsDamaging = true;
 				bIsHitObscle = true;
-				bIsHitObscle = false;
 				Damage();
 			}
 			else if (OtherActor->ActorHasTag("Goal"))
 			{
-				
-				gameMode->RaceStop();
 				//1秒経過後インプットをしないように
-				FTimerDelegate TimerDelegate;
-				TimerDelegate.BindUFunction(this, FName("DisableInput"), PlayerController);
-				GetWorldTimerManager().SetTimer(disableInputTimerHandle, TimerDelegate, 2.0f, false);
+				GetWorldTimerManager().SetTimer(DisableInputTimerHandle,this, &ACat::AfterGoalEvent, 2.0f, false);
 				
 			}
 			
 		}
 
 }
+void ACat::AfterGoalEvent()
+{
+	GameMode->RaceStop();
+	DisableInput(PlayerController);
+}
 
 void ACat::Damage()
 {
-	GetWorldTimerManager().SetTimer(damageTimerHandle, this, &ACat::DamageFlashing, 0.1f, true);
+	GetWorldTimerManager().SetTimer(HitObscaleTimeHandle, this, &ACat::AfterHitObscale, GameMode->RecordingDeltaTime, false);
+	GetWorldTimerManager().SetTimer(DamageTimerHandle, this, &ACat::DamageFlashing, 0.1f, true);
+	
 }
 
 void ACat::DamageFlashing()
 {
-	damageTime += 0.1f;
+	DamageTime += 0.1f;
 	bIsDamaging = true;
-	SetActorHiddenInGame(damageFlashFlipFloop);
-	damageFlashFlipFloop = !damageFlashFlipFloop;
-	if (maxDamageTime <= damageTime)
+	SetActorHiddenInGame(bDamageFlashFlipFloop);
+	bDamageFlashFlipFloop = !bDamageFlashFlipFloop;
+	if (MaxDamageTime <= DamageTime)
 	{
 		bIsDamaging = false;
 		SetActorHiddenInGame(false);
-		GetWorldTimerManager().ClearTimer(damageTimerHandle);
+		GetWorldTimerManager().ClearTimer(DamageTimerHandle);
 	}
+}
+
+void ACat::AfterHitObscale()
+{
+	bIsHitObscle = false;
 }
