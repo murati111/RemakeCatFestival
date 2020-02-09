@@ -37,19 +37,21 @@ private:
 
 public:
 	AMainGameModeBase(const FObjectInitializer& ObjectInitializer);
-	class UMainGameInstance* gameInstance;
+	class UMainGameInstance* GameInstance;
 	void StopRecording();
 	UPROPERTY(EditDefaultsOnly, BlueprintSetter = SetCurrentGameState,BlueprintGetter = GetCurrentGameState, Category = "GameMode")
-		EGameState currentGameState;
+		EGameState CurrentGameState;
 
-	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "GameMode")
-		bool bIsGhostMode;
 	UPROPERTY()
 		float RecordingDeltaTime = 0.001;
 
 	UPROPERTY()
-		class AGhost* Ghost;
+		class UMainSaveGame* GameData;
 
+	UPROPERTY()
+		class AGhost* Ghost;
+	UPROPERTY(EditDefaultsOnly , Category=Ghost)
+		class TSubclassOf<class AGhost> GhostClass;
 	UPROPERTY()
 		class ACat* Cat;
 
@@ -64,7 +66,7 @@ public:
 	UFUNCTION()
 		void TimerStopAndRecord();
 
-	UFUNCTION(BlueprintCallable, Category = "GameMode")
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "GameMode")
 		void RaceStart();
 
 	UFUNCTION(BlueprintCallable, Category = "GameMode")
@@ -79,14 +81,15 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "GameMode")
 		void RacePrepare();
 
-	UFUNCTION(BlueprintCallable, Category = "GameMode")
-		void SaveGhostRecord(float time);
+	//UFUNCTION(BlueprintCallable, Category = "GameMode")
+	//	void SaveGhostRecord(float time);
 
-	UFUNCTION(BlueprintCallable, Category = "GameMode")
-		FCatGhost LoadGhostRecord(int32 index);
-	
-	UFUNCTION()
-		void GhostRecordSort(TArray<FCatGhost>& ghostdatas, float time);
+	//UFUNCTION(BlueprintCallable, Category = "GameMode")
+	//	FCatGhost LoadGhostRecord(int32 index);
+
+///	UFUNCTION(BlueprintCallable, Category = "GameMode")
+	//	bool LoadSaveGame();
+
 
 protected:
 	virtual void BeginPlay() override;
