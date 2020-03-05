@@ -32,6 +32,8 @@ class REMAKECATFESTIVAL_API UMainGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
 
+
+
 public:
 	UPROPERTY(VisibleAnyWhere, BlueprintReadWrite, Category = GameData)
 		bool bIsGhostMode = false;
@@ -39,8 +41,6 @@ public:
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = GameData)
 		float CurrentTime = 0.0f;
 
-	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = GameData)
-		int32 DashPoint = 0;
 
 	UPROPERTY(VisibleAnyWhere, BlueprintReadWrite, Category = GameData)
 		FCatGhost LoadingGhostData;
