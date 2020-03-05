@@ -27,23 +27,35 @@ class REMAKECATFESTIVAL_API AMainGameModeBase : public AGameModeBase
 private:
 	FTimerHandle GameTimeHandle;
 	FTimerHandle RecordTimeHandle;
+	UPROPERTY()
+		bool bIsDashing=false;
+	UPROPERTY()
+		int32 CurrentDashPoint = 0;
+
+	UPROPERTY()
+		int32 MaxDashPoint = 200;
 	void TimerCount();
-	class APawn* PlayerPawn;
-	class APlayerController* PlayerController;
-	class ACat* cat;
+	UPROPERTY()
+		class APawn* PlayerPawn;
+	UPROPERTY()
+		class APlayerController* PlayerController;
+
 	void StartRecording();
 	void RecordingGhost();
 
 
 public:
 	AMainGameModeBase(const FObjectInitializer& ObjectInitializer);
-	class UMainGameInstance* GameInstance;
-	void StopRecording();
+	
+	UPROPERTY()
+		class UMainGameInstance* GameInstance;
+	
 	UPROPERTY(EditDefaultsOnly, BlueprintSetter = SetCurrentGameState,BlueprintGetter = GetCurrentGameState, Category = "GameMode")
 		EGameState CurrentGameState;
 
 	UPROPERTY()
 		float RecordingDeltaTime = 0.001;
+
 
 	UPROPERTY()
 		class UMainSaveGame* GameData;
@@ -53,15 +65,28 @@ public:
 	UPROPERTY(EditDefaultsOnly , Category=Ghost)
 		class TSubclassOf<class AGhost> GhostClass;
 	UPROPERTY()
+
 		class ACat* Cat;
 
 	UFUNCTION(BlueprintGetter)
 		EGameState GetCurrentGameState();
+
+	UFUNCTION(BlueprintPure,Category="Dash")
+	bool IsDashing() const;
+	void SetIsDashing(const bool bIsNewDashing);
+	
+	UFUNCTION(BlueprintPure,Category="Cat")
+	int32 GetCurrentDashPoint() const;
+
+	UFUNCTION(BlueprintPure, Category = "Cat")
+	int32 GetMaxDashPoint()const;
+
+	void SetCurrentDashPoint(const int32 Point);
 	UFUNCTION(BlueprintSetter)
 		void SetCurrentGameState(EGameState gstate);
 
 	UFUNCTION()
-		void AddDashPoint(int32 dp);
+		void AddDashPoint(int32 Point);
 
 	UFUNCTION()
 		void TimerStopAndRecord();
@@ -81,16 +106,7 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "GameMode")
 		void RacePrepare();
 
-	//UFUNCTION(BlueprintCallable, Category = "GameMode")
-	//	void SaveGhostRecord(float time);
-
-	//UFUNCTION(BlueprintCallable, Category = "GameMode")
-	//	FCatGhost LoadGhostRecord(int32 index);
-
-///	UFUNCTION(BlueprintCallable, Category = "GameMode")
-	//	bool LoadSaveGame();
-
-
+		void StopRecording();
 protected:
 	virtual void BeginPlay() override;
 	virtual void StartPlay() override;

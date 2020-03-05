@@ -64,7 +64,6 @@ void AMainGameModeBase::StartRecording()
 
 void AMainGameModeBase::RecordingGhost()
 {
-	UE_LOG(LogTemp, Error, TEXT("%s"), (Cat->bIsHitObscle ? TEXT("True") : TEXT("false")));
 	GameInstance->AddGhostData(Cat->GetActorLocation(), Cat->GetVelocity().Size(), Cat->bIsHitObscle);
 }
 
@@ -80,14 +79,42 @@ EGameState AMainGameModeBase::GetCurrentGameState()
 	return CurrentGameState;
 }
 
+bool AMainGameModeBase::IsDashing() const
+{
+	return bIsDashing;
+}
+
+void AMainGameModeBase::SetIsDashing(const bool bIsNewDashing)
+{
+	bIsDashing = bIsNewDashing;
+}
+
+int32 AMainGameModeBase::GetCurrentDashPoint() const
+{
+	return CurrentDashPoint;
+}
+int32 AMainGameModeBase::GetMaxDashPoint() const
+{
+	return MaxDashPoint;
+}
+void AMainGameModeBase::SetCurrentDashPoint(const int32 Point)
+{
+	CurrentDashPoint = Point;
+}
+
 void AMainGameModeBase::SetCurrentGameState(EGameState gstate)
 {
 	CurrentGameState = gstate;
 }
 
-void AMainGameModeBase::AddDashPoint(int32 dp)
+void AMainGameModeBase::AddDashPoint(int32 Point)
 {
-	GameInstance->DashPoint += dp;
+	if (IsDashing()) return;
+	int32 AdditionalPoint = GetCurrentDashPoint() + Point;
+	//è„å¿Ç∆â∫å¿ÇÃê›íË
+	AdditionalPoint = FMath::Clamp(AdditionalPoint, 0, MaxDashPoint);
+	SetCurrentDashPoint(AdditionalPoint);
+	
 }
 
 void AMainGameModeBase::TimerStopAndRecord()
@@ -150,50 +177,3 @@ void AMainGameModeBase::RaceUnPaused()
 {
 }
 
-//void AMainGameModeBase::SaveGhostRecord(float time)
-//{
-//	GameData = Cast<UMainSaveGame>(UGameplayStatics::CreateSaveGameObject(UMainSaveGame::StaticClass()));
-//	if (LoadSaveGame())
-//	{
-//		UE_LOG(LogTemp, Log, TEXT("WhyNull"));
-//		for (int8 i = 0; i < 3; i++)
-//		{
-//			GameData->GhostRecords.AddZeroed();
-//			GameData->GhostRecords[i].RecordTime = -1.0f;
-//		}
-//	}
-//
-//	//GhostRecordSort(SaveGameInst->GhostRecords, time);
-//	for (int8 i = 0; i < 3; i++)
-//	{
-//		float SaveRecordTime = LoadGhostRecord(i).RecordTime;
-//		if (SaveRecordTime <= 0)
-//		{
-//			GameData->GhostRecords.Insert(GameInstance->RecordingGhostData, i);
-//			GameData->GhostRecords.RemoveAt(3);
-//			break;
-//		}
-//		else if((SaveRecordTime >= GameInstance->CurrentTime))
-//		{			
-//			GameData->GhostRecords.Insert(GameInstance->RecordingGhostData, i);
-//			GameData->GhostRecords.RemoveAt(3);
-//			break;
-//		}
-//	}
-//	UGameplayStatics::SaveGameToSlot(GameData, GameData->SaveSlotName, GameData->UserIndex);
-//}
-
-//FCatGhost AMainGameModeBase::LoadGhostRecord(int32 index)
-//{
-//	UMainSaveGame* LoadGameInst = Cast<UMainSaveGame>(UGameplayStatics::CreateSaveGameObject(UMainSaveGame::StaticClass()));
-//	LoadGameInst = Cast<UMainSaveGame>(UGameplayStatics::LoadGameFromSlot(LoadGameInst->SaveSlotName, LoadGameInst->UserIndex));
-//	return LoadGameInst->GhostRecords[index];
-//
-//}
-
-/*bool AMainGameModeBase::LoadSaveGame()
-{
-	UMainSaveGame* LoadGameInst = Cast<UMainSaveGame>(UGameplayStatics::CreateSaveGameObject(UMainSaveGame::StaticClass()));
-	LoadGameInst = Cast<UMainSaveGame>(UGameplayStatics::LoadGameFromSlot(LoadGameInst->SaveSlotName, LoadGameInst->UserIndex));
-	return	LoadGameInst == nullptr;
-}*/
