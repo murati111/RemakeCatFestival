@@ -110,7 +110,7 @@ void ACat::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAxis("MoveForward", this, &ACat::MoveForward);
 
 	PlayerInputComponent->BindAction("Escape", IE_Pressed,this, &ACat::EscapeTwoWays);
-	
+	PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &ACat::Dash);
 
 }
 
@@ -193,6 +193,7 @@ void ACat::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* Othe
 			if (OtherActor->ActorHasTag("Item"))
 			{
 				GameMode->AddDashPoint(dp);
+				OnAddDashPoint();
 			}
 			else if (OtherActor->ActorHasTag("Obstacle"))
 			{
@@ -224,6 +225,33 @@ void ACat::Damage()
 	
 }
 
+void ACat::Dash()
+{
+	UE_LOG(LogTemp, Error, TEXT("DASHHHHH"));
+	int32 CurrentPoint = GameMode->GetCurrentDashPoint();
+	const int32 MaxPoint = GetMainGameMode()->GetMaxDashPoint();
+	if (CurrentPoint >= MaxPoint)
+	{
+		
+		if (bIsDamaging) return;
+		if (GameMode->IsDashing()) return;
+		GameMode->SetIsDashing(true);
+		DecreasePointOnDashing();
+		DashAction();
+	}
+}
+
+void ACat::DashAction()
+{
+	GetCharacterMovement()->MaxWalkSpeed = 1200.0f;
+	GetWorldTimerManager().SetTimer(DashingTimerHandle,this,&ACat::OnDashingEvent,2.0f,false);
+}
+
+AMainGameModeBase* ACat::GetMainGameMode()
+{
+	return Cast<AMainGameModeBase>(GetWorld()->GetAuthGameMode());
+}
+
 void ACat::DamageFlashing()
 {
 	DamageTime += 0.1f;
@@ -236,6 +264,13 @@ void ACat::DamageFlashing()
 		SetActorHiddenInGame(false);
 		GetWorldTimerManager().ClearTimer(DamageTimerHandle);
 	}
+}
+
+void ACat::OnDashingEvent()
+{
+	GetCharacterMovement()->MaxWalkSpeed = 600.0f;
+	GameMode->SetIsDashing(false);
+	GameMode->SetCurrentDashPoint(0);
 }
 
 void ACat::AfterHitObscale()

@@ -27,12 +27,14 @@ private:
 	FTimerHandle DamageTimerHandle;
 	FTimerHandle HitObscaleTimeHandle;
 	FTimerHandle DisableInputTimerHandle;
+	FTimerHandle DashingTimerHandle;
 	float DamageTime = 0.0f;
 	float EscapeOffset = 0.0f;
 	UPROPERTY()
 		class APlayerController* PlayerController;
 
 	void DamageFlashing();
+	void OnDashingEvent();
 	void AfterHitObscale();
 	void AfterGoalEvent();
 
@@ -87,6 +89,19 @@ public:
 
 	UFUNCTION()
 		void Damage();
+
+	UFUNCTION()
+		void Dash();
+
+	void DashAction();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Cat")
+		void OnAddDashPoint();
+	UFUNCTION(BlueprintImplementableEvent, Category = "Cat")
+		void DecreasePointOnDashing();
+	UFUNCTION(BlueprintPure, Category = "Cat")
+		class AMainGameModeBase* GetMainGameMode();
+
 
 
 
