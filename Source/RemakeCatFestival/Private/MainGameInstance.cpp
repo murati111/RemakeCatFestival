@@ -18,7 +18,7 @@ UMainGameInstance* UMainGameInstance::GetInstance()
 }
 void UMainGameInstance::InitialSaveGame()
 {
-	if (UGameplayStatics::DoesSaveGameExist(SaveSlotName,UserIndex))
+	if (!UGameplayStatics::DoesSaveGameExist(SaveSlotName,UserIndex))
 	{
 		if (GameData == nullptr)
 		{
