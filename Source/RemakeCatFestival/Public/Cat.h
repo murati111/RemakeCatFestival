@@ -25,28 +25,34 @@ private:
 	bool bDamageFlashFlipFloop;
 	FTimerHandle EscapeTimerHandle;
 	FTimerHandle DamageTimerHandle;
-	FTimerHandle HitObscaleTimeHandle;
 	FTimerHandle DisableInputTimerHandle;
-	FTimerHandle DashingTimerHandle;
-	float DamageTime = 0.0f;
 	float EscapeOffset = 0.0f;
+	
 	UPROPERTY()
 		class APlayerController* PlayerController;
 
+	UPROPERTY(EditAnyWhere, Category = Cat)
+		float MaxDamageTime = 1.0f;
+	UPROPERTY(EditAnyWhere, Category = Cat)
+		float DashingMaxSpeed = 2400.f;
+	UPROPERTY(EditAnyWhere, Category = Cat)
+		float DashingMaxAcceleration = 2400.f;
+	UPROPERTY(EditAnyWhere, Category = Cat)
+		float DefaultMaxSpeed = 1200.f;
+	UPROPERTY(EditAnyWhere, Category = Cat)
+		float DefaultMaxAcceleration = 900.f;
 	void DamageFlashing();
 	void OnDashingEvent();
 	void AfterHitObscale();
 	void AfterGoalEvent();
+	void OnFinishedDamage();
+	void SetMaxSpeedAndAccel(const float Speed, const float Accel);
 
 
 public:	
-	UPROPERTY(VisibleAnyWhere,BlueprintReadWrite,Category=Cat)
-		bool bIsHitObscle;
+	bool bIsHitObscle;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-	UFUNCTION()
-	void CanInput(bool bInputMode);
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -69,10 +75,7 @@ public:
 	UPROPERTY(EditAnyWhere, BlueprintReadOnly, Category = Cat)
 		float EscapeLength;
 
-	UPROPERTY(EditAnyWhere, BlueprintReadOnly, Category = Cat)
-		float MaxDamageTime = 1.0f;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Cat)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Cat)
 		class UBoxComponent* BoxComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
