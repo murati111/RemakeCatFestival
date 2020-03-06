@@ -37,7 +37,7 @@ public:
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = Item)
 		class UMaterialInterface* PlaneMaterial;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Item)
-	class USoundBase* ItemGetSound;
+		class USoundBase* ItemGetSound;
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = Item)
 		int32 DashPoint = 10;
 	// Called every frame

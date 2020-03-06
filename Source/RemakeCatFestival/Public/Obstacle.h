@@ -20,6 +20,9 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+private:
+	UPROPERTY(EditAnywhere,Category = Obstacle)
+		class USoundBase* HitObstacleSound;
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Obstacle)
 		FName ActorTag = "Obstacle";

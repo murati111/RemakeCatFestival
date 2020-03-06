@@ -5,6 +5,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AObstacle::AObstacle()
@@ -56,6 +57,10 @@ void AObstacle::ReceiveDamage_Implementation(int32& point)
 {
 	UE_LOG(LogTemp, Log, TEXT("MyIntValue"));
 	point = 0;
+	if (HitObstacleSound != nullptr)
+	{
+		UGameplayStatics::PlaySound2D(this, HitObstacleSound);
+	}
 	Destroy();
 }
 
