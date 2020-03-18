@@ -13,36 +13,25 @@ class REMAKECATFESTIVAL_API AGhost : public ACharacter
 	GENERATED_BODY()
 
 private:
-	void LoadingGhostData();
-	FTimerHandle LoadingTimeHandle;
-	int32 count = 0;
 
+	FTimerHandle LoadingTimeHandle;
+	int32 LoadingGhostCount = 0;
+	UPROPERTY()
+	class UMainGameInstance* GameInstance;
+	void LoadingGhostData();
+
+private:
+	UPROPERTY(EditDefaultsOnly,Category = "Ghost")
+	class UAnimMontage* DamageAnimation;
+
+	class AMainGameModeBase* GetGameMode();
 public:
 	// Sets default values for this character's properties
 	AGhost();
-	UPROPERTY()
-		class UMainGameInstance* GameInstance;
-	UPROPERTY()
-		class AMainGameModeBase* GameMode;
-
-	UPROPERTY(EditAnyWhere,BlueprintReadWrite,Category="Ghost")
-		class UAnimMontage* DamageAnimation;
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "Ghost")
 		float Speed;
-
-	UFUNCTION(BlueprintCallable)
 	void StartLoadingGhost();
 	void StopLoadingGhost();
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 };

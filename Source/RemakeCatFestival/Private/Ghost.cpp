@@ -10,6 +10,11 @@
 #include "TimerManager.h"
 #include "Public/MainGameModeBase.h"
 
+AMainGameModeBase* AGhost::GetGameMode()
+{
+	return  Cast<AMainGameModeBase>(GetWorld()->GetAuthGameMode()) ? Cast<AMainGameModeBase>(GetWorld()->GetAuthGameMode()) : nullptr;
+}
+
 // Sets default values
 AGhost::AGhost()
 {
@@ -47,8 +52,9 @@ AGhost::AGhost()
 
 void AGhost::StartLoadingGhost()
 {
-	GetWorldTimerManager().SetTimer(LoadingTimeHandle, this, &AGhost::LoadingGhostData, GameMode->RecordingDeltaTime, true);
-	SetActorLocation(GameInstance->LoadingGhostData.Positions[count]);
+	if (GetGameMode() == nullptr) { return; }
+	GetWorldTimerManager().SetTimer(LoadingTimeHandle, this, &AGhost::LoadingGhostData, GetGameMode()->GetRecordingDeltaTime(), true);
+	SetActorLocation(GameInstance->GetLoadingGhostData().Positions[LoadingGhostCount]);
 }
 
 void AGhost::StopLoadingGhost()
@@ -57,11 +63,12 @@ void AGhost::StopLoadingGhost()
 }
 void AGhost::LoadingGhostData()
 {
-	count++;
-	SetActorLocation(GameInstance->LoadingGhostData.Positions[count]);
-	Speed = GameInstance->LoadingGhostData.Speeds[count];
+	if (GameInstance == nullptr) { return; }
+	LoadingGhostCount++;
+	SetActorLocation(GameInstance->GetLoadingGhostData().Positions[LoadingGhostCount]);
+	Speed = GameInstance->GetLoadingGhostData().Speeds[LoadingGhostCount];
 	//UE_LOG(LogTemp, Error, TEXT("%s"), (GameInstance->LoadingGhostData.IsStops[count] ? TEXT("True") :TEXT("false")) );
-	if (GameInstance->LoadingGhostData.IsStops[count])
+	if (GameInstance->GetLoadingGhostData().IsStops[LoadingGhostCount])
 	{
 		//UE_LOG(LogTemp, Log, TEXT("True"));
 		PlayAnimMontage(DamageAnimation);
@@ -70,30 +77,8 @@ void AGhost::LoadingGhostData()
 	{
 		//UE_LOG(LogTemp, Log, TEXT("false"));
 	}
-	if (GameInstance->LoadingGhostData.Positions.Max()-1 <= count)
+	if (GameInstance->GetLoadingGhostData().Positions.Max()-1 <= LoadingGhostCount)
 	{
 		StopLoadingGhost();
 	}
 }
-// Called when the game starts or when spawned
-void AGhost::BeginPlay()
-{
-	Super::BeginPlay();
-	GameMode = Cast<AMainGameModeBase>(GetWorld()->GetAuthGameMode());
-	//GameInstance->LoadingGhostData = GameMode->LoadGhostRecord(0);
-}
-
-// Called every frame
-void AGhost::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
-// Called to bind functionality to input
-void AGhost::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-}
-

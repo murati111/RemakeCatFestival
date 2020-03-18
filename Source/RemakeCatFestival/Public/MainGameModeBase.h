@@ -11,104 +11,108 @@
  * 
  */
 
-UENUM(BlueprintType)
-enum class EGameState : uint8
-{
-	Title UMETA(DisplayName = "Title"),
-	Playing UMETA(DisplayName = "Playing"),
-	Pausing UMETA(DisplayName = "Pausing"),
-	Ranking UMETA(DisplayName = "Ranking"),
-};
+//UENUM(BlueprintType)
+//enum class EGameState : uint8
+//{
+//	Title UMETA(DisplayName = "Title"),
+//	Playing UMETA(DisplayName = "Playing"),
+//	Pausing UMETA(DisplayName = "Pausing"),
+//	Ranking UMETA(DisplayName = "Ranking"),
+//};
+
+
 
 UCLASS()
 class REMAKECATFESTIVAL_API AMainGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
+
+protected:
+	virtual void BeginPlay() override;
+
+//UI関連
 private:
-	FTimerHandle GameTimeHandle;
+	UPROPERTY(EditAnywhere,Category="Widget")
+	TSubclassOf<class UUserWidget> CatWidgetClass;
+
+	class UUserWidget* CatWidget;
+
+	void AddToViewportWidget();
+protected:
+	UFUNCTION(BlueprintPure, Category = "Widget")
+	class UUserWidget* GetCatWidget()const { return CatWidget; }
+
+//ゴーストレコード
+private:
+	UPROPERTY()
+	float RecordingDeltaTime = 0.001;
+
 	FTimerHandle RecordTimeHandle;
-	UPROPERTY()
-		bool bIsDashing=false;
-	UPROPERTY()
-		int32 CurrentDashPoint = 0;
 
 	UPROPERTY()
-		int32 MaxDashPoint = 200;
-	void TimerCount();
-	UPROPERTY()
-		class APawn* PlayerPawn;
-	UPROPERTY()
-		class APlayerController* PlayerController;
+	class AGhost* Ghost;
+
+	UPROPERTY(EditDefaultsOnly, Category=Ghost)
+	class TSubclassOf<class AGhost> GhostClass;
 
 	void StartRecording();
-	void RecordingGhost();
 
+	void RecordingGhost();
+public:
+	float GetRecordingDeltaTime()const { return RecordingDeltaTime; }
+
+//キャラクター・コントローラー・インスタンス
+private:
+	UPROPERTY()
+	class ACat* Cat;
+
+	APlayerController* GetPlayerController()const;
+protected:
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Level")
+	FName ResultMapName = TEXT("Result");
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Level")
+	FName TitleMapName = TEXT("Title");
 
 public:
 	AMainGameModeBase(const FObjectInitializer& ObjectInitializer);
 	
 	UPROPERTY()
-		class UMainGameInstance* GameInstance;
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintSetter = SetCurrentGameState,BlueprintGetter = GetCurrentGameState, Category = "GameMode")
-		EGameState CurrentGameState;
+	class UMainGameInstance* GameInstance;
 
-	UPROPERTY()
-		float RecordingDeltaTime = 0.001;
+//タイム計測
+private:
+	FTimerHandle GameTimeHandle;
+	void TimerCount();
 
-
-	UPROPERTY()
-		class UMainSaveGame* GameData;
-
-	UPROPERTY()
-		class AGhost* Ghost;
-	UPROPERTY(EditDefaultsOnly , Category=Ghost)
-		class TSubclassOf<class AGhost> GhostClass;
-	UPROPERTY()
-
-		class ACat* Cat;
-
-	UFUNCTION(BlueprintGetter)
-		EGameState GetCurrentGameState();
-
-	UFUNCTION(BlueprintPure,Category="Dash")
-	bool IsDashing() const;
-	void SetIsDashing(const bool bIsNewDashing);
-	
-	UFUNCTION(BlueprintPure,Category="Cat")
-	int32 GetCurrentDashPoint() const;
-
-	UFUNCTION(BlueprintPure, Category = "Cat")
-	int32 GetMaxDashPoint()const;
-
-	void SetCurrentDashPoint(const int32 Point);
-	UFUNCTION(BlueprintSetter)
-		void SetCurrentGameState(EGameState gstate);
-
-	UFUNCTION()
-		void AddDashPoint(int32 Point);
-
-	UFUNCTION()
-		void TimerStopAndRecord();
-
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "GameMode")
-		void RaceStart();
-
-	UFUNCTION(BlueprintCallable, Category = "GameMode")
-		void RaceStop();
-
-	UFUNCTION(BlueprintCallable, Category = "GameMode")
-		void RacePaused();
-
-	UFUNCTION(BlueprintCallable, Category = "GameMode")
-		void RaceUnPaused();
-
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "GameMode")
-		void RacePrepare();
-
-		void StopRecording();
+//ゲーム進行管理
+private:
+	void StopRecording();
+	void TimerStop();
+	void RaceStop();
 protected:
-	virtual void BeginPlay() override;
-	virtual void StartPlay() override;
+	UFUNCTION(BlueprintCallable, Category = "GameMode")
+	void RaceStart();
 
+	UFUNCTION(BlueprintCallable, Category = "GameMode")
+	void RacePaused();
+
+	UFUNCTION(BlueprintCallable, Category = "GameMode")
+	void RaceUnPaused();
+
+
+	UFUNCTION(BlueprintCallable, Category = "GameMode")
+	void RestartRace();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "GameMode")
+	void RacePrepare();
+
+	UFUNCTION(BlueprintImplementableEvent,Category="GameMode")
+	void GoalEvent();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "GameMode")
+	void OnSavedEvent();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "GameMode")
+	void UpdateTimeCount(float CurrentTime);
 };

@@ -1,9 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Cat.h"
-#include "Public/CatInterface.h"
 #include "Public/MainGameModeBase.h"
+#include "Public/CatInterface.h"
 #include "Components/InputComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/BoxComponent.h"
@@ -18,7 +17,6 @@
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 
-
 // Sets default values
 ACat::ACat()
 {
@@ -29,23 +27,23 @@ ACat::ACat()
 	
 	GetCapsuleComponent()->InitCapsuleSize(80.0f, 100.0f);
 
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> PlayerMeshObj(TEXT("/Game/Cat/Charcter/SK_Cat.SK_Cat"));
-	if (PlayerMeshObj.Succeeded())
-	{
-		GetMesh()->SetSkeletalMesh(PlayerMeshObj.Object);
-		static ConstructorHelpers::FClassFinder<UAnimInstance> PlayerAnimBPClass(TEXT("/Game/Cat/Animation/ABP_Cat"));
-		
-		if (PlayerAnimBPClass.Class)
-		{
-			GetMesh()->SetAnimClass(PlayerAnimBPClass.Class);
-		}
-		static ConstructorHelpers::FObjectFinder<UAnimMontage> DamageAnimMontageObj(TEXT("/Game/Cat/Animation/AM_Damage.AM_Damage"));
-		if (DamageAnimMontageObj.Succeeded())
-		{
-			DamageAnimation = DamageAnimMontageObj.Object;
-		}
+	//static ConstructorHelpers::FObjectFinder<USkeletalMesh> PlayerMeshObj(TEXT("/Game/Cat/Charcter/SK_Cat.SK_Cat"));
+	//if (PlayerMeshObj.Succeeded())
+	//{
+	//	GetMesh()->SetSkeletalMesh(PlayerMeshObj.Object);
+	//	static ConstructorHelpers::FClassFinder<UAnimInstance> PlayerAnimBPClass(TEXT("/Game/Cat/Animation/ABP_Cat"));
+	//	
+	//	if (PlayerAnimBPClass.Class)
+	//	{
+	//		GetMesh()->SetAnimClass(PlayerAnimBPClass.Class);
+	//	}
+	//	static ConstructorHelpers::FObjectFinder<UAnimMontage> DamageAnimMontageObj(TEXT("/Game/Cat/Animation/AM_Damage.AM_Damage"));
+	//	if (DamageAnimMontageObj.Succeeded())
+	//	{
+	//		DamageAnimation = DamageAnimMontageObj.Object;
+	//	}
 
-	}
+	//}
 	GetMesh()->SetRelativeScale3D(FVector(0.25f, 0.25f, 0.25f));
 	GetMesh()->SetRelativeLocation(FVector(0.0f, 0.0f, -90.0f));
 	GetMesh()->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
@@ -64,12 +62,9 @@ ACat::ACat()
 	BoxComp->SetupAttachment(GetMesh());
 	BoxComp->SetRelativeLocation(FVector(0.0f, -40.0f, 320.0f));
 	BoxComp->SetRelativeScale3D(FVector(3.0f, 10.0f, 5.5f));
-	BoxComp->OnComponentBeginOverlap.AddDynamic(this, &ACat::OnOverlapBegin);
-
-	EscapeFlipFloop = true;
-	bIsEscaping = false;
-	bIsDamaging = false;
-	bIsHitObscle = false;
+	FScriptDelegate CollisionBeginOverlap;
+	CollisionBeginOverlap.BindUFunction(this, TEXT("OnOverlapBegin"));
+	BoxComp->OnComponentBeginOverlap.Add(CollisionBeginOverlap);
 
 }
 
@@ -77,8 +72,6 @@ ACat::ACat()
 void ACat::BeginPlay()
 {
 	Super::BeginPlay();
-	GameMode = Cast<AMainGameModeBase>(GetWorld()->GetAuthGameMode());
-	PlayerController = GetWorld()->GetFirstPlayerController();
 	SetMaxSpeedAndAccel(DefaultMaxSpeed, DefaultMaxAcceleration);
 	UE_LOG(LogTemp, Log, TEXT("CatBegin"));
 }
@@ -99,6 +92,7 @@ void ACat::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAxis("MoveForward", this, &ACat::MoveForward);
 	PlayerInputComponent->BindAction("Escape", IE_Pressed,this, &ACat::EscapeTwoWays);
 	PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &ACat::Dash);
+	
 
 }
 
@@ -118,9 +112,9 @@ void ACat::EscapeTwoWays()
 	//if (bIsDamaging) { return; }
 
 	FTimerDelegate TimerDelegate;
+	constexpr float EscapeIntervalTime = 0.001f;
 	TimerDelegate.BindUFunction(this, FName("EscapeTwoWaysMoving"), EscapeFlipFloop);
-	GetWorldTimerManager().SetTimer(EscapeTimerHandle, TimerDelegate, 0.001f, true);
-	//EscapeTwoWaysMoving(EscapeFlipFloop);
+	GetWorldTimerManager().SetTimer(EscapeTimerHandle, TimerDelegate, EscapeIntervalTime, true);
 	if (EscapeSound != nullptr)
 	{
 		UGameplayStatics::PlaySound2D(this, EscapeSound);
@@ -131,15 +125,7 @@ void ACat::EscapeTwoWays()
 void ACat::EscapeTwoWaysMoving(bool IsRight)
 {
 	constexpr float OffsetPerTime = 1.0f;
-	float ReverseScale = 1.0f;
-	if (IsRight)
-	{
-		ReverseScale = -1.0f;
-	}
-	else
-	{
-		ReverseScale = 1.0f;
-	}
+	const float ReverseScale = IsRight ? -1.0f : 1.0f;
 	if (EscapeOffset < EscapeLength)
 	{
 		bIsEscaping = true;
@@ -157,21 +143,21 @@ void ACat::EscapeTwoWaysMoving(bool IsRight)
 void ACat::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 
-	int32 dp = 0;
-	bool bIsImplemted = OtherActor->GetClass()->ImplementsInterface(UCatInterface::StaticClass());
-	ICatInterface* Interface = Cast<ICatInterface>(OtherActor);
+	int32 Point = 0;
+	const bool bIsImplemted = OtherActor->GetClass()->ImplementsInterface(UCatInterface::StaticClass());
+	const ICatInterface* Interface = Cast<ICatInterface>(OtherActor);
 
 	if (!bIsImplemted) { return; }
 
-	Interface->Execute_ReceiveDamage(OtherActor,dp);
+	Interface->Execute_ReceiveDamage(OtherActor, Point);
 	if (OtherActor->ActorHasTag("Item"))
 	{
-		GameMode->AddDashPoint(dp);
-		OnAddDashPoint();
+		AddDashPoint(Point);
+		OnAddDashPointEvent(CurrentDashPoint,MaxDashPoint,!bIsDashing);
 	}
 	else if (OtherActor->ActorHasTag("Obstacle"))
 	{
-		if (GetMainGameMode()->IsDashing()) { return; }
+		if (bIsDashing) { return; }
 		PlayAnimMontage(DamageAnimation);
 		bIsDamaging = true;
 		bIsHitObscle = true;
@@ -180,25 +166,36 @@ void ACat::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* Othe
 	}
 	else if (OtherActor->ActorHasTag("Goal"))
 	{
-		//1秒経過後インプットをしないように
-		GetWorldTimerManager().SetTimer(DisableInputTimerHandle,this, &ACat::AfterGoalEvent, 2.0f, false);
+		RaceStopDelegate.ExecuteIfBound();
+		//2秒経過後インプットをしないように
+		constexpr float InputWaitTime = 2.0f;
+		GetWorldTimerManager().SetTimer(DisableInputTimerHandle,this, &ACat::AfterGoalEvent, InputWaitTime, false);
 	}
+}
+void ACat::AddDashPoint(const int32 Point)
+{
+	if (bIsDashing) { return; }
+	//UE_LOG(LogTemp, Error, TEXT("DashPoint:%d"), CurrentDashPoint);
+	CurrentDashPoint = FMath::Clamp(CurrentDashPoint + Point, 0, MaxDashPoint);
+	UE_LOG(LogTemp, Error, TEXT("DashPoint:%d"), CurrentDashPoint);
 }
 void ACat::AfterGoalEvent()
 {
-	GameMode->RaceStop();
-	DisableInput(PlayerController);
+	//GameMode->RaceStop();
+	RecordGhostDelegate.ExecuteIfBound();
+	DisableInput(GetPlayerController());
 }
 
 
 void ACat::Damage()
 {
-	DisableInput(PlayerController);
+	DisableInput(GetPlayerController());
 
 	FTimerHandle HitObscaleTimeHandle;
-	GetWorldTimerManager().SetTimer(HitObscaleTimeHandle, this, &ACat::AfterHitObscale, GetMainGameMode()->RecordingDeltaTime, false);
+	GetWorldTimerManager().SetTimer(HitObscaleTimeHandle, this, &ACat::AfterHitObscale, GetMainGameMode()->GetRecordingDeltaTime(), false);
 
-	GetWorldTimerManager().SetTimer(DamageTimerHandle, this, &ACat::DamageFlashing, 0.1f, true);
+	constexpr float DamageFlashingTime = 0.1f;
+	GetWorldTimerManager().SetTimer(DamageTimerHandle, this, &ACat::DamageFlashing, DamageFlashingTime, true);
 
 	FTimerHandle DamageFinishTimerHandle;
 	GetWorldTimerManager().SetTimer(DamageFinishTimerHandle, this, &ACat::OnFinishedDamage, MaxDamageTime, false);
@@ -206,7 +203,7 @@ void ACat::Damage()
 }
 void ACat::OnFinishedDamage()
 {
-	EnableInput(PlayerController);
+	EnableInput(GetPlayerController());
 	bIsDamaging = false;
 	SetActorHiddenInGame(false);
 	GetWorldTimerManager().ClearTimer(DamageTimerHandle);
@@ -217,14 +214,12 @@ void ACat::OnFinishedDamage()
 void ACat::Dash()
 {
 	UE_LOG(LogTemp, Error, TEXT("DASHHHHH"));
-	const int32 CurrentPoint = GetMainGameMode()->GetCurrentDashPoint();
-	const int32 MaxPoint = GetMainGameMode()->GetMaxDashPoint();
-	if (CurrentPoint >= MaxPoint)
+	if (CurrentDashPoint >= MaxDashPoint)
 	{
-		if (bIsDamaging) return;
-		if (GameMode->IsDashing()) return;
-		GameMode->SetIsDashing(true);
-		DecreasePointOnDashing();
+		if (bIsDamaging) { return; }
+		if (bIsDashing) { return; }
+		bIsDashing = true;
+		OnDecreaseDashingPointEvent();
 		DashAction();
 	}
 }
@@ -236,10 +231,17 @@ void ACat::DashAction()
 	GetWorldTimerManager().SetTimer(DashingTimerHandle,this,&ACat::OnDashingEvent,2.0f,false);
 }
 
-AMainGameModeBase* ACat::GetMainGameMode()
+APlayerController* ACat::GetPlayerController() const
+{
+	return GetWorld()->GetFirstPlayerController();
+}
+
+AMainGameModeBase* ACat::GetMainGameMode() const
 {
 	return Cast<AMainGameModeBase>(GetWorld()->GetAuthGameMode());
 }
+
+
 
 void ACat::DamageFlashing()
 {
@@ -251,8 +253,8 @@ void ACat::DamageFlashing()
 void ACat::OnDashingEvent()
 {
 	SetMaxSpeedAndAccel(DefaultMaxSpeed, DefaultMaxAcceleration);
-	GameMode->SetIsDashing(false);
-	GameMode->SetCurrentDashPoint(0);
+	bIsDashing = false;
+	CurrentDashPoint = 0;
 }
 
 void ACat::AfterHitObscale()
@@ -265,3 +267,8 @@ void ACat::SetMaxSpeedAndAccel(const float Speed, const float Accel)
 	GetCharacterMovement()->MaxWalkSpeed = Speed;
 	GetCharacterMovement()->MaxAcceleration = Accel;
 }
+
+
+
+
+

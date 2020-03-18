@@ -26,11 +26,11 @@ private:
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Obstacle)
 		FName ActorTag = "Obstacle";
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Obstacle)
+	UPROPERTY(VisibleAnyWhere, BlueprintReadWrite, Category = Obstacle)
 		class UStaticMeshComponent* Ramune;
 
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Obstacle)
+	UPROPERTY(VisibleAnyWhere, BlueprintReadWrite, Category = Obstacle)
 		class UBoxComponent* BoxComp;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

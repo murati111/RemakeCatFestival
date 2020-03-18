@@ -4,7 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "Cat.generated.h"
+#include "Cat.generated.h" 
+
+DECLARE_DELEGATE(FRaceStopDelegate)
+DECLARE_DELEGATE(FRecordGhostDelegate)
 
 UCLASS()
 class REMAKECATFESTIVAL_API ACat : public ACharacter
@@ -20,27 +23,47 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	bool bIsEscaping;
-	bool bIsDamaging;
+	bool bIsEscaping = false;
+	bool bIsDamaging = false;
 	bool bDamageFlashFlipFloop;
 	FTimerHandle EscapeTimerHandle;
 	FTimerHandle DamageTimerHandle;
 	FTimerHandle DisableInputTimerHandle;
 	float EscapeOffset = 0.0f;
+	bool bIsHitObscle = false;
+	UPROPERTY(EditAnyWhere, Category = Cat)
+		float MaxDamageTime = 1.0f;	
 	
-	UPROPERTY()
-		class APlayerController* PlayerController;
+	UPROPERTY(EditAnywhere,Category= Cat)
+		class UAnimMontage* DamageAnimation;
+
+	UPROPERTY(EditAnywhere, Category = Gameplay)
+		class USoundBase* EscapeSound;
 
 	UPROPERTY(EditAnyWhere, Category = Cat)
-		float MaxDamageTime = 1.0f;
+		bool EscapeFlipFloop = true;
+
 	UPROPERTY(EditAnyWhere, Category = Cat)
+		float EscapeLength = 300.f;
+private:
+	UPROPERTY(EditAnyWhere, Category = Dash)
 		float DashingMaxSpeed = 2400.f;
-	UPROPERTY(EditAnyWhere, Category = Cat)
+	UPROPERTY(EditAnyWhere, Category = Dash)
 		float DashingMaxAcceleration = 2400.f;
-	UPROPERTY(EditAnyWhere, Category = Cat)
+	UPROPERTY(EditAnyWhere, Category = Dash)
 		float DefaultMaxSpeed = 1200.f;
-	UPROPERTY(EditAnyWhere, Category = Cat)
+	UPROPERTY(EditAnyWhere, Category = Dash)
 		float DefaultMaxAcceleration = 900.f;
+	UPROPERTY()
+		int32 CurrentDashPoint = 0;
+	UPROPERTY()
+		int32 MaxDashPoint = 200;
+	UPROPERTY()
+		bool bIsDashing = false;
+
+	void AddDashPoint(const int32 Point);
+
+private:
 	void DamageFlashing();
 	void OnDashingEvent();
 	void AfterHitObscale();
@@ -48,32 +71,17 @@ private:
 	void OnFinishedDamage();
 	void SetMaxSpeedAndAccel(const float Speed, const float Accel);
 
+//GameModeÇÃä÷êîåƒÇ—èoÇµópDelegate
+public:
+	FRaceStopDelegate RaceStopDelegate;
+	FRecordGhostDelegate RecordGhostDelegate;
 
 public:	
-	bool bIsHitObscle;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	void MoveForward(float Val);
-
-	void EscapeTwoWays();
-	UPROPERTY()
-		class AMainGameModeBase* GameMode;
-
-	UPROPERTY()
-		class UAnimMontage* DamageAnimation;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-		class USoundBase* EscapeSound;
-
-	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = Cat)
-		bool EscapeFlipFloop;
-
-	UPROPERTY(EditAnyWhere, BlueprintReadOnly, Category = Cat)
-		float EscapeLength;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Cat)
 		class UBoxComponent* BoxComp;
@@ -84,29 +92,25 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = SpringArm, meta = (AllowPrivateAccess = "true"))
 		class USpringArmComponent* CatSpringArm;
 
+	bool IsHitObscle()const { return bIsHitObscle; }
+protected:
 	UFUNCTION()
-		void EscapeTwoWaysMoving(bool IsRight);
-
+	void EscapeTwoWaysMoving(bool IsRight);
 	UFUNCTION()
-		void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-	UFUNCTION()
-		void Damage();
-
-	UFUNCTION()
-		void Dash();
-
+	void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+private:
+	void Damage();
+	void Dash();
 	void DashAction();
+	class AMainGameModeBase* GetMainGameMode() const;
+	APlayerController* GetPlayerController() const;
+	void MoveForward(float Val);
+	void EscapeTwoWays();
 
+protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Cat")
-		void OnAddDashPoint();
+		void OnAddDashPointEvent(const int32 CurrentPoint, const int32 MaxPoint,const bool IsNotDashing);
 	UFUNCTION(BlueprintImplementableEvent, Category = "Cat")
-		void DecreasePointOnDashing();
-	UFUNCTION(BlueprintPure, Category = "Cat")
-		class AMainGameModeBase* GetMainGameMode();
-
-
-
-
+		void OnDecreaseDashingPointEvent();
 
 };

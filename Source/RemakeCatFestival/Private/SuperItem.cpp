@@ -54,6 +54,7 @@ void ASuperItem::ReceiveDamage_Implementation(int32& point)
 	if (ItemGetSound != nullptr)
 	{
 		UGameplayStatics::PlaySound2D(this, ItemGetSound);
+		
 	}
 	Destroy();
 }

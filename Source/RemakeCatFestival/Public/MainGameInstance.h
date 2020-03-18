@@ -31,42 +31,52 @@ UCLASS()
 class REMAKECATFESTIVAL_API UMainGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
-
-
-
-public:
-	UPROPERTY(VisibleAnyWhere, BlueprintReadWrite, Category = GameData)
-		bool bIsGhostMode = false;
-
-	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = GameData)
-		float CurrentTime = 0.0f;
-
-
-	UPROPERTY(VisibleAnyWhere, BlueprintReadWrite, Category = GameData)
-		FCatGhost LoadingGhostData;
-
-	UPROPERTY(VisibleAnyWhere, BlueprintReadWrite, Category = GameData)
-		FCatGhost RecordingGhostData;
-
-	UPROPERTY(VisibleAnyWhere,BlueprintReadOnly,Category=GameData)
-		int32 MAXSAVEGAME = 3;
-
-	UPROPERTY(EditAnyWhere, BlueprintReadOnly, Category = GameData)
-		TSubclassOf<class UMainSaveGame> SaveGameSlot;
+private:
+	UPROPERTY()
+	bool bIsGhostMode = false;
 
 	UPROPERTY()
-		class UMainSaveGame* GameData;
+	FCatGhost RecordingGhostData;
 
+	UPROPERTY()
+	FCatGhost LoadingGhostData;
+
+	UPROPERTY()
+	class UMainSaveGame* GameData;
+
+	UPROPERTY()
+	float CurrentTime = 0.0f;
+
+	int32 CurrentRank = -1;	
+	int32 MaxSaveGame = 3;
 	FString SaveSlotName = TEXT("SaveGameSlot");
-	int32 UserIndex = 0;
 
-	UFUNCTION(BlueprintCallable, Category = "GameInstance")
-		void InitialSaveGame();
-	UFUNCTION(BlueprintCallable, Category = "GameInstance")
-		void SaveGameData();
-	UFUNCTION(BlueprintCallable, Category = "GameInstance")
-		FCatGhost LoadGameData(int32 RankIndex);
+	void InitialSaveGame();
 
+protected:
+	UPROPERTY(EditAnyWhere, BlueprintReadOnly, Category = GameData)
+	TSubclassOf<class UMainSaveGame> SaveGameSlot;
+
+public:
+	bool IsGhostMode() const { return bIsGhostMode; }
+	int32 GetCurrentRank() const { return CurrentRank; }
+
+	UFUNCTION(BlueprintPure,Category="GameTime")
+	float GetCurrentTime() const { return CurrentTime; }
+
+	void AddCurrentTime(const float Time) { CurrentTime += Time; }
+
+	FCatGhost GetLoadingGhostData()const { return LoadingGhostData; }
+
+	void SaveGameData();
+	UFUNCTION(BlueprintCallable, Category = "GameInstance")
+	void LoadGameDataFromIndex(int32 RankIndex);
+
+	TArray<FCatGhost> LoadGameData();
+	void CreateGhostTimesAndDoesGhostDataExists(TArray<float>& RankingTimes, TArray<bool>& DoesGhostDataExists);
+	void CreateGhostTimes(TArray<float>& RankingTimes);
+	void InitialInstanceValues();
+	void RestartInstanceValues();
 	static UMainGameInstance* GetInstance();
 	void AddGhostData(const FVector Position, const float Speed, const bool IsStop);
 	void SetRecordTime();

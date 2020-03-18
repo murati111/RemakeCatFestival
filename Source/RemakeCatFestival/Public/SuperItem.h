@@ -25,20 +25,20 @@ private:
 	void PlaneRotation();
 
 public:	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Item)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Item")
 		FName ActorTag = "Item";
 
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite, Category = Item)
+	UPROPERTY(VisibleAnyWhere,BlueprintReadWrite, Category = "Item")
 	class UStaticMeshComponent* Plane;
 
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite, Category = Item)
+	UPROPERTY(VisibleAnyWhere,BlueprintReadWrite, Category = Item)
 		class UBoxComponent* BoxComp;
 
-	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = Item)
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category ="AItem")
 		class UMaterialInterface* PlaneMaterial;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Item)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AItem")
 		class USoundBase* ItemGetSound;
-	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = Item)
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "AItem")
 		int32 DashPoint = 10;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

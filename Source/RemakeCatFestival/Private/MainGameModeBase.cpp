@@ -10,20 +10,12 @@
 #include "Engine.h"
 #include "Kismet/GameplayStatics.h"
 #include "Public/Ghost.h"
+#include "Blueprint/UserWidget.h"
+
+
 
 AMainGameModeBase::AMainGameModeBase(const FObjectInitializer& ObjectInitializer)
 {
-	/*static ConstructorHelpers::FClassFinder<APawn> PawnClass(TEXT("/Game/Cat/BP/BP_Cat"));
-	static ConstructorHelpers::FClassFinder<APlayerController> ControllerClass(TEXT("/Game/Cat/BP/BP_CatController"));
-	if (PawnClass.Succeeded())
-	{
-		DefaultPawnClass = PawnClass.Class;
-	}
-	if (ControllerClass.Succeeded())
-	{
-		PlayerControllerClass = ControllerClass.Class;
-	}
-	PlayerControllerClass = ControllerClass.Class;*/
 	GameInstance = UMainGameInstance::GetInstance();
 	
 }
@@ -31,149 +23,131 @@ AMainGameModeBase::AMainGameModeBase(const FObjectInitializer& ObjectInitializer
 
 void AMainGameModeBase::BeginPlay()
 {
+	AddToViewportWidget();
+	Cat = Cast<ACat>(GetPlayerController()->GetPawn());
+	if (Cat != nullptr)
+	{
+		Cat->RaceStopDelegate.BindUObject(this, &AMainGameModeBase::RaceStop);
+		Cat->RecordGhostDelegate.BindUObject(this, &AMainGameModeBase::StopRecording);
+	}
+	RacePrepare();
 	Super::BeginPlay();
 	
 }
-
-void AMainGameModeBase::StartPlay()
+void AMainGameModeBase::AddToViewportWidget()
 {
-	Super::StartPlay();
-	 UE_LOG(LogTemp, Log, TEXT("StartPlay"));
-	PlayerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
-	if (PlayerPawn != nullptr)
+	if (GetPlayerController() == nullptr) { return; }
+	CatWidget = CreateWidget<UUserWidget>(GetPlayerController(), CatWidgetClass);
+	if (CatWidget != nullptr)
 	{
-		UE_LOG(LogTemp, Log, TEXT("NotNull"));
+		CatWidget->AddToViewport();
 	}
-	Cat = Cast<ACat>(PlayerPawn);
-	PlayerController = UGameplayStatics::GetPlayerController(this, 0);
-	RacePrepare();
 }
+
+APlayerController* AMainGameModeBase::GetPlayerController() const
+{
+	return GetWorld()->GetFirstPlayerController() ? GetWorld()->GetFirstPlayerController() : nullptr;
+}
+
+void AMainGameModeBase::TimerStop()
+{
+	if (GameInstance == nullptr) { return; }
+	GetWorldTimerManager().ClearTimer(GameTimeHandle);
+	GameInstance->SetRecordTime();
+}
+
 
 void AMainGameModeBase::TimerCount()
 {
-	GameInstance->CurrentTime += 0.01f;
+	if (GameInstance == nullptr) { return; }
+	constexpr float AdditionalTime = 0.01f;
+	GameInstance->AddCurrentTime(AdditionalTime);
+	UpdateTimeCount(GameInstance->GetCurrentTime());
 	//UE_LOG(LogTemp, Error, TEXT("Overlap %f"), GameInstance->Time);
 }
 
+
 void AMainGameModeBase::StartRecording()
 {
-	GameInstance->AddGhostData(Cat->GetActorLocation(), Cat->GetVelocity().Size(), Cat->bIsHitObscle);
+	if (Cat == nullptr) { return; }
+	GameInstance->AddGhostData(Cat->GetActorLocation(), Cat->GetVelocity().Size(), Cat->IsHitObscle());
 	GetWorldTimerManager().SetTimer(RecordTimeHandle, this, &AMainGameModeBase::RecordingGhost,RecordingDeltaTime,true);
 	
 }
 
 void AMainGameModeBase::RecordingGhost()
 {
-	GameInstance->AddGhostData(Cat->GetActorLocation(), Cat->GetVelocity().Size(), Cat->bIsHitObscle);
+	if (Cat == nullptr) { return; }
+	GameInstance->AddGhostData(Cat->GetActorLocation(), Cat->GetVelocity().Size(), Cat->IsHitObscle());
 }
 
 void AMainGameModeBase::StopRecording()
 {
 	GetWorldTimerManager().ClearTimer(RecordTimeHandle);
-}
-
-
-
-EGameState AMainGameModeBase::GetCurrentGameState()
-{
-	return CurrentGameState;
-}
-
-bool AMainGameModeBase::IsDashing() const
-{
-	return bIsDashing;
-}
-
-void AMainGameModeBase::SetIsDashing(const bool bIsNewDashing)
-{
-	bIsDashing = bIsNewDashing;
-}
-
-int32 AMainGameModeBase::GetCurrentDashPoint() const
-{
-	return CurrentDashPoint;
-}
-int32 AMainGameModeBase::GetMaxDashPoint() const
-{
-	return MaxDashPoint;
-}
-void AMainGameModeBase::SetCurrentDashPoint(const int32 Point)
-{
-	CurrentDashPoint = Point;
-}
-
-void AMainGameModeBase::SetCurrentGameState(EGameState gstate)
-{
-	CurrentGameState = gstate;
-}
-
-void AMainGameModeBase::AddDashPoint(int32 Point)
-{
-	if (IsDashing()) return;
-	int32 AdditionalPoint = GetCurrentDashPoint() + Point;
-	//ãŒÀ‚Æ‰ºŒÀ‚ÌÝ’è
-	AdditionalPoint = FMath::Clamp(AdditionalPoint, 0, MaxDashPoint);
-	SetCurrentDashPoint(AdditionalPoint);
-	
-}
-
-void AMainGameModeBase::TimerStopAndRecord()
-{
-	GetWorldTimerManager().ClearTimer(GameTimeHandle);
-	GameInstance->SetRecordTime();
+	if (Ghost != nullptr)
+	{
+		Ghost->StopLoadingGhost();
+	}
 	GameInstance->SaveGameData();
-	UE_LOG(LogTemp, Log, TEXT("Start"));
+	OnSavedEvent();
 }
 void AMainGameModeBase::RacePrepare_Implementation()
 {
-	SetCurrentGameState(EGameState::Pausing);
-	if (PlayerPawn != nullptr)
+
+	/*if (PlayerPawn != nullptr && PlayerController != nullptr)
 	{
 		PlayerPawn->DisableInput(PlayerController);
+	}*/
+	if (GetPlayerController() != nullptr && Cat != nullptr)
+	{
+		Cat->DisableInput(GetPlayerController());
 	}
-	
 }
 
-void AMainGameModeBase::RaceStart_Implementation()
+void AMainGameModeBase::RaceStart()
 {
-	if (GameInstance->bIsGhostMode)
+	if (GameInstance->IsGhostMode()) 
 	{
-		if (GhostClass != nullptr)
+		if (GhostClass == nullptr) { return; }
+		if (GetWorld() != nullptr)
 		{
-			UWorld* const World = GetWorld();
-			if (World != nullptr)
-			{
+			const FRotator SpawnRotation = Cat->GetActorRotation();
+			const FVector SpawnLocation = Cat->GetActorLocation();
 
-				const FRotator SpawnRotation = Cat->GetActorRotation();
-				const FVector SpawnLocation = Cat->GetActorLocation();
-
-				Ghost = World->SpawnActor<AGhost>(GhostClass, SpawnLocation, SpawnRotation);
+			Ghost = GetWorld()->SpawnActor<AGhost>(GhostClass, SpawnLocation, SpawnRotation);
+			if (Ghost != nullptr) 
+			{ 
 				Ghost->StartLoadingGhost();
 			}
 		}
-		
 	}
-	SetCurrentGameState(EGameState::Playing);
-	PlayerPawn->EnableInput(PlayerController);
+	if (GetPlayerController() != nullptr && Cat != nullptr)
+	{
+		Cat->EnableInput(GetPlayerController());
+	}
 	GetWorldTimerManager().SetTimer(GameTimeHandle, this, &AMainGameModeBase::TimerCount, 0.01f, true);
 	StartRecording();
 }
 
 void AMainGameModeBase::RaceStop()
 {
-	StopRecording();
-	if (Ghost != nullptr)
-	{
-		Ghost->StopLoadingGhost();
-	}
-	TimerStopAndRecord();
+	TimerStop();
+	GoalEvent();
+	UE_LOG(LogTemp, Error, TEXT("Race Stop!!!"));
 }
 
 void AMainGameModeBase::RacePaused()
 {
+	GetPlayerController()->SetPause(true);
 }
 
 void AMainGameModeBase::RaceUnPaused()
 {
+	GetPlayerController()->SetPause(false);
+}
+
+void AMainGameModeBase::RestartRace()
+{
+	GameInstance->RestartInstanceValues();
 }
 
