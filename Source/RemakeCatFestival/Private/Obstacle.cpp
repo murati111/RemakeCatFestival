@@ -6,6 +6,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Kismet/GameplayStatics.h"
+#include "DestructibleComponent.h"
 
 // Sets default values
 AObstacle::AObstacle()
@@ -24,19 +25,27 @@ AObstacle::AObstacle()
 	}
 
 	Ramune = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Ramune"));
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> RamuneMeshObj(TEXT("/Game/Cat/Objects/Ramune/SM_Ramune.SM_Ramune"));
-	if (RamuneMeshObj.Succeeded())
+	if (Ramune!=nullptr)
 	{
-		Ramune->SetStaticMesh(RamuneMeshObj.Object);
 		Ramune->SetupAttachment(RootComponent);
 		Ramune->SetRelativeScale3D(FVector(0.25f));
 		Ramune->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
+	DestructibleComponent = CreateDefaultSubobject<UDestructibleComponent>(TEXT("Ramune_DM"));
+	if (DestructibleComponent != nullptr)
+	{
+		DestructibleComponent->SetupAttachment(RootComponent);
+		DestructibleComponent->SetRelativeScale3D(FVector(0.25f));
+	}
 
 	BoxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComp"));
-	BoxComp->SetupAttachment(Ramune);
-	BoxComp->SetRelativeLocation(FVector(0.0f, 0.0f, 505.0f));
-	BoxComp->SetRelativeScale3D(FVector(4.25f, 4.25f, 15.5f));
+	if (BoxComp != nullptr)
+	{
+		BoxComp->SetupAttachment(DestructibleComponent);
+		BoxComp->SetRelativeLocation(FVector(0.0f, 0.0f, 505.0f));
+		BoxComp->SetRelativeScale3D(FVector(4.25f, 4.25f, 15.5f));
+	}
+
 }
 
 // Called when the game starts or when spawned
@@ -46,21 +55,27 @@ void AObstacle::BeginPlay()
 	
 }
 
-// Called every frame
-void AObstacle::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
-void AObstacle::ReceiveDamage_Implementation(int32& point)
-{
-	UE_LOG(LogTemp, Log, TEXT("MyIntValue"));
-	point = 0;
-	if (HitObstacleSound != nullptr)
+void AObstacle::ReceiveDamageForObscale_Implementation(FVector HitNormalVector,bool IsDashing)
+{	
+	UE_LOG(LogTemp, Log, TEXT("ReceiveDamage"));
+	if (IsDashing)
 	{
-		UGameplayStatics::PlaySound2D(this, HitObstacleSound);
+		if (BreakObstacleSound != nullptr)
+		{
+			constexpr float Volume = 1.0f;
+			UGameplayStatics::PlaySound2D(this, BreakObstacleSound, Volume);
+		}
 	}
-	Destroy();
+	else
+	{
+		if (HitObstacleSound != nullptr)
+		{
+			UGameplayStatics::PlaySound2D(this, HitObstacleSound);
+		}
+	}
+
+	BoxComp->SetGenerateOverlapEvents(false);
+	constexpr float LifeSpan = 2.0f;
+	SetLifeSpan(LifeSpan);
 }
 

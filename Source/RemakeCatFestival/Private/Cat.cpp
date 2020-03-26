@@ -16,6 +16,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 // Sets default values
 ACat::ACat()
@@ -73,6 +74,9 @@ void ACat::BeginPlay()
 {
 	Super::BeginPlay();
 	SetMaxSpeedAndAccel(DefaultMaxSpeed, DefaultMaxAcceleration);
+	UMaterialInterface* PostProcessMaterial = Cast<UMaterialInterface>(CatCameraComponent->PostProcessSettings.WeightedBlendables.Array[0].Object);
+	if (PostProcessMaterial == nullptr) { return; }
+	BlurMaterial = UMaterialInstanceDynamic::Create(PostProcessMaterial, this);
 	UE_LOG(LogTemp, Log, TEXT("CatBegin"));
 }
 
@@ -80,9 +84,23 @@ void ACat::BeginPlay()
 void ACat::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (bIsDashing)
+	{
+		constexpr float MaxFov = 120.f;
+		ChangeFovInSpeed(MaxFov, DashingMaxSpeed);
 
+		constexpr float MaxBlurValue = 0.5f;
+		ChangeMotionBlurValueInSpeed(MaxBlurValue, DashingMaxSpeed);
+	
+	}
+	else
+	{
+
+		constexpr float MaxFov = 100.f;
+		ChangeFovInSpeed(MaxFov, DefaultMaxSpeed);
+
+	}
 }
-
 // Called to bind functionality to input
 void ACat::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -154,22 +172,27 @@ void ACat::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* Othe
 	{
 		AddDashPoint(Point);
 		OnAddDashPointEvent(CurrentDashPoint,MaxDashPoint,!bIsDashing);
-	}
-	else if (OtherActor->ActorHasTag("Obstacle"))
-	{
-		if (bIsDashing) { return; }
-		PlayAnimMontage(DamageAnimation);
-		bIsDamaging = true;
-		bIsHitObscle = true;
-		Damage();
-		
+		return;
 	}
 	else if (OtherActor->ActorHasTag("Goal"))
 	{
 		RaceStopDelegate.ExecuteIfBound();
 		//2秒経過後インプットをしないように
 		constexpr float InputWaitTime = 2.0f;
-		GetWorldTimerManager().SetTimer(DisableInputTimerHandle,this, &ACat::AfterGoalEvent, InputWaitTime, false);
+		GetWorldTimerManager().SetTimer(DisableInputTimerHandle, this, &ACat::AfterGoalEvent, InputWaitTime, false);
+		return;
+	}
+	FVector ImpulseVector = FVector(OtherActor->GetActorLocation().X - GetActorLocation().X, OtherActor->GetActorLocation().Y - GetActorLocation().Y,0.f);
+	ImpulseVector.Normalize();
+	Interface->Execute_ReceiveDamageForObscale(OtherActor, ImpulseVector,bIsDashing);
+	if (OtherActor->ActorHasTag("Obstacle"))
+	{
+		if (bIsDashing) { return; }
+		PlayAnimMontage(DamageAnimation);
+		bIsDamaging = true;
+		bIsHitObscle = true;
+		Damage();
+		return;
 	}
 }
 void ACat::AddDashPoint(const int32 Point)
@@ -221,6 +244,7 @@ void ACat::Dash()
 		bIsDashing = true;
 		OnDecreaseDashingPointEvent();
 		DashAction();
+		
 	}
 }
 
@@ -228,7 +252,7 @@ void ACat::DashAction()
 {
 	SetMaxSpeedAndAccel(DashingMaxSpeed, DashingMaxAcceleration);
 	FTimerHandle DashingTimerHandle;
-	GetWorldTimerManager().SetTimer(DashingTimerHandle,this,&ACat::OnDashingEvent,2.0f,false);
+	GetWorldTimerManager().SetTimer(DashingTimerHandle,this,&ACat::OnDashingEvent,DashingTime,false);
 }
 
 APlayerController* ACat::GetPlayerController() const
@@ -253,6 +277,7 @@ void ACat::DamageFlashing()
 void ACat::OnDashingEvent()
 {
 	SetMaxSpeedAndAccel(DefaultMaxSpeed, DefaultMaxAcceleration);
+	SetMotionBlurValue(0.f);
 	bIsDashing = false;
 	CurrentDashPoint = 0;
 }
@@ -266,9 +291,29 @@ void ACat::SetMaxSpeedAndAccel(const float Speed, const float Accel)
 {
 	GetCharacterMovement()->MaxWalkSpeed = Speed;
 	GetCharacterMovement()->MaxAcceleration = Accel;
+	
 }
 
+void ACat::ChangeFovInSpeed(const float MaxFov, const float MaxSpeed)
+{
+	if (CatCameraComponent == nullptr) { return; }
+	const float Speed = GetCharacterMovement()->Velocity.Size();
+	constexpr float DefaultFov = 90.f;
+	const float CurrentFov = (Speed / MaxSpeed * (MaxFov - DefaultFov)) + DefaultFov;
+	CatCameraComponent->SetFieldOfView(CurrentFov);
+}
 
+void ACat::SetMotionBlurValue(const float BlurValue)
+{
+	if (BlurMaterial == nullptr || CatCameraComponent == nullptr) { return; }
+	const FName ParameterName = TEXT("Blur");
+	BlurMaterial->SetScalarParameterValue(ParameterName, BlurValue);
+	CatCameraComponent->PostProcessSettings.WeightedBlendables.Array[0].Object = BlurMaterial;
+}
 
-
-
+void ACat::ChangeMotionBlurValueInSpeed(const float MaxBlurValue, const float MaxSpeed)
+{
+	const float Speed = GetCharacterMovement()->Velocity.Size();
+	const float BlurValue = Speed / MaxSpeed * MaxBlurValue;
+	SetMotionBlurValue(BlurValue); 
+}

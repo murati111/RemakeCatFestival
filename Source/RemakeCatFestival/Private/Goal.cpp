@@ -41,6 +41,11 @@ void AGoal::Tick(float DeltaTime)
 
 void AGoal::ReceiveDamage_Implementation(int32& point)
 {
-	UGameplayStatics::PlaySound2D(this, GoalSE);
+	if (GoalSE != nullptr)
+	{
+		UGameplayStatics::PlaySound2D(this, GoalSE);
+	}
+	
 	point = 0;
+	BoxComp->SetGenerateOverlapEvents(false);
 }

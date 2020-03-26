@@ -24,4 +24,7 @@ class REMAKECATFESTIVAL_API ICatInterface
 public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable,Category = "CatInterface")
 		void ReceiveDamage(int32 &point);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "CatInterface")
+	void ReceiveDamageForObscale(FVector HitNormalVector,bool IsDashing);
 };

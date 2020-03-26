@@ -54,18 +54,32 @@ private:
 		float DefaultMaxSpeed = 1200.f;
 	UPROPERTY(EditAnyWhere, Category = Dash)
 		float DefaultMaxAcceleration = 900.f;
+	UPROPERTY(EditAnyWhere, Category = Dash)
+		float DashingTime = 2.0f;
 	UPROPERTY()
 		int32 CurrentDashPoint = 0;
 	UPROPERTY()
 		int32 MaxDashPoint = 200;
 	UPROPERTY()
 		bool bIsDashing = false;
-
+	UPROPERTY()
+		class UMaterialInstanceDynamic* BlurMaterial;
 	void AddDashPoint(const int32 Point);
+	void DashAction();
+	void Dash();
+	void OnDashingEvent();
+	void ChangeFovInSpeed(const float MaxFov, const float MaxSpeed);
+	void SetMotionBlurValue(const float BlurValue);
+	void ChangeMotionBlurValueInSpeed(const float MaxBlurValue, const float MaxSpeed);
+
+
+protected:
+	UFUNCTION(BlueprintPure,Category="Dash")
+	bool IsDashing() const { return bIsDashing; }
 
 private:
 	void DamageFlashing();
-	void OnDashingEvent();
+
 	void AfterHitObscale();
 	void AfterGoalEvent();
 	void OnFinishedDamage();
@@ -96,14 +110,15 @@ public:
 protected:
 	UFUNCTION()
 	void EscapeTwoWaysMoving(bool IsRight);
+
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
 private:
 	void Damage();
-	void Dash();
-	void DashAction();
 	class AMainGameModeBase* GetMainGameMode() const;
 	APlayerController* GetPlayerController() const;
+
 	void MoveForward(float Val);
 	void EscapeTwoWays();
 

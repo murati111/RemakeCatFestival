@@ -21,22 +21,28 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	UPROPERTY(EditAnywhere,Category = Obstacle)
-		class USoundBase* HitObstacleSound;
+	UPROPERTY(EditDefaultsOnly,Category = Obstacle)
+	class USoundBase* HitObstacleSound;
+
+	UPROPERTY(EditDefaultsOnly, Category = Obstacle)
+	class USoundBase* BreakObstacleSound;
+
+	UPROPERTY(EditDefaultsOnly, Category = Obstacle)
+	FName ActorTag = "Obstacle";
 public:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Obstacle)
-		FName ActorTag = "Obstacle";
-	UPROPERTY(VisibleAnyWhere, BlueprintReadWrite, Category = Obstacle)
-		class UStaticMeshComponent* Ramune;
 
 
 	UPROPERTY(VisibleAnyWhere, BlueprintReadWrite, Category = Obstacle)
-		class UBoxComponent* BoxComp;
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	class UStaticMeshComponent* Ramune;
+
+	UPROPERTY(VisibleAnyWhere, BlueprintReadWrite, Category = Obstacle)
+	class UDestructibleComponent* DestructibleComponent;
+
+	UPROPERTY(VisibleAnyWhere, BlueprintReadWrite, Category = Obstacle)
+	class UBoxComponent* BoxComp;
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "CatInterface")
-		void ReceiveDamage(int32& point);
-	virtual void ReceiveDamage_Implementation(int32& point);
+	void ReceiveDamageForObscale(FVector HitNormalVector, bool IsDashing);
+	virtual void ReceiveDamageForObscale_Implementation(FVector HitNormalVector,bool IsDashing);
 
 };
