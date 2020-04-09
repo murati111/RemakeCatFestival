@@ -15,6 +15,12 @@ AMainGameModeBase* AGhost::GetGameMode()
 	return  Cast<AMainGameModeBase>(GetWorld()->GetAuthGameMode()) ? Cast<AMainGameModeBase>(GetWorld()->GetAuthGameMode()) : nullptr;
 }
 
+void AGhost::BeginPlay()
+{
+	LoadingGhostCount = 0;
+	Super::BeginPlay();
+}
+
 // Sets default values
 AGhost::AGhost()
 {
@@ -61,24 +67,25 @@ void AGhost::StopLoadingGhost()
 {
 	GetWorldTimerManager().ClearTimer(LoadingTimeHandle);
 }
+void AGhost::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+}
 void AGhost::LoadingGhostData()
 {
 	if (GameInstance == nullptr) { return; }
-	LoadingGhostCount++;
+	LoadingGhostCount++;	
+	if (GameInstance->GetLoadingGhostData().Positions.Max() <= LoadingGhostCount)
+	{
+		StopLoadingGhost();
+		return;
+	}
 	SetActorLocation(GameInstance->GetLoadingGhostData().Positions[LoadingGhostCount]);
 	Speed = GameInstance->GetLoadingGhostData().Speeds[LoadingGhostCount];
-	//UE_LOG(LogTemp, Error, TEXT("%s"), (GameInstance->LoadingGhostData.IsStops[count] ? TEXT("True") :TEXT("false")) );
+	//UE_LOG(LogTemp, Error, TEXT("GhostSpeed %f"), Speed);
 	if (GameInstance->GetLoadingGhostData().IsStops[LoadingGhostCount])
 	{
 		//UE_LOG(LogTemp, Log, TEXT("True"));
 		PlayAnimMontage(DamageAnimation);
-	}
-	else
-	{
-		//UE_LOG(LogTemp, Log, TEXT("false"));
-	}
-	if (GameInstance->GetLoadingGhostData().Positions.Max()-1 <= LoadingGhostCount)
-	{
-		StopLoadingGhost();
 	}
 }

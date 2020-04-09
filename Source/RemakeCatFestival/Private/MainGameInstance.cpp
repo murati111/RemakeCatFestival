@@ -121,7 +121,7 @@ void UMainGameInstance::InitialInstanceValues()
 void UMainGameInstance::RestartInstanceValues()
 {
 	CurrentTime = 0.0f;
-	LoadingGhostData = FCatGhost();
+	RecordingGhostData = FCatGhost();
 	CurrentRank = -1;
 }
 
