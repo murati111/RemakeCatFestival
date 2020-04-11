@@ -26,27 +26,30 @@ private:
 
 public:	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Item")
-		FName ActorTag = "Item";
+	FName ActorTag = "Item";
 
 	UPROPERTY(VisibleAnyWhere,BlueprintReadWrite, Category = "Item")
 	class UStaticMeshComponent* Plane;
 
 	UPROPERTY(VisibleAnyWhere,BlueprintReadWrite, Category = Item)
-		class UBoxComponent* BoxComp;
+	class UBoxComponent* BoxComp;
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category ="AItem")
-		class UMaterialInterface* PlaneMaterial;
+	class UMaterialInterface* PlaneMaterial;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AItem")
-		class USoundBase* ItemGetSound;
+	class USoundBase* ItemGetSound;
+
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "AItem")
-		int32 DashPoint = 10;
+	int32 DashPoint = 10;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void OnConstruction(const FTransform& Transform) override;
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "CatInterface")
-		void ReceiveDamage(int32 &point);
-		virtual void ReceiveDamage_Implementation(int32& point);
+	void ReceiveDamage(int32 &point);
+
+	virtual void ReceiveDamage_Implementation(int32& point);
 
 };

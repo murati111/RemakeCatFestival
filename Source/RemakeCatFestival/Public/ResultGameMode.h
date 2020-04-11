@@ -19,6 +19,7 @@ private:
     TSubclassOf<class UUserWidget> ResultWidgetClass;
 
     class UUserWidget* ResultWidget;
+
 protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Level")
     FName TitleMapName = TEXT("TitleMap");

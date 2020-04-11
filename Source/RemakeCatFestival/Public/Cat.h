@@ -24,46 +24,64 @@ protected:
 
 private:
 	bool bIsEscaping = false;
+
 	bool bIsDamaging = false;
+
 	bool bDamageFlashFlipFloop;
+
 	FTimerHandle EscapeTimerHandle;
+
 	FTimerHandle DamageTimerHandle;
+
 	FTimerHandle DisableInputTimerHandle;
+
 	float EscapeOffset = 0.0f;
+
 	bool bIsHitObscle = false;
+
 	UPROPERTY(EditAnyWhere, Category = Cat)
-		float MaxDamageTime = 1.0f;	
+	float MaxDamageTime = 1.0f;	
 	
 	UPROPERTY(EditAnywhere,Category= Cat)
-		class UAnimMontage* DamageAnimation;
+	class UAnimMontage* DamageAnimation;
 
 	UPROPERTY(EditAnywhere, Category = Gameplay)
-		class USoundBase* EscapeSound;
+	class USoundBase* EscapeSound;
 
 	UPROPERTY(EditAnyWhere, Category = Cat)
-		bool EscapeFlipFloop = true;
+	bool EscapeFlipFloop = true;
 
 	UPROPERTY(EditAnyWhere, Category = Cat)
-		float EscapeLength = 300.f;
+	float EscapeLength = 300.f;
+
 private:
 	UPROPERTY(EditAnyWhere, Category = Dash)
-		float DashingMaxSpeed = 2400.f;
+	float DashingMaxSpeed = 2400.f;
+
 	UPROPERTY(EditAnyWhere, Category = Dash)
-		float DashingMaxAcceleration = 2400.f;
+	float DashingMaxAcceleration = 2400.f;
+
 	UPROPERTY(EditAnyWhere, Category = Dash)
-		float DefaultMaxSpeed = 1200.f;
+	float DefaultMaxSpeed = 1200.f;
+
 	UPROPERTY(EditAnyWhere, Category = Dash)
-		float DefaultMaxAcceleration = 900.f;
+	float DefaultMaxAcceleration = 900.f;
+
 	UPROPERTY(EditAnyWhere, Category = Dash)
-		float DashingTime = 2.0f;
+	float DashingTime = 2.0f;
+
 	UPROPERTY()
-		int32 CurrentDashPoint = 0;
+	int32 CurrentDashPoint = 0;
+
 	UPROPERTY()
-		int32 MaxDashPoint = 200;
+	int32 MaxDashPoint = 200;
+
 	UPROPERTY()
-		bool bIsDashing = false;
+	bool bIsDashing = false;
+
 	UPROPERTY()
-		class UMaterialInstanceDynamic* BlurMaterial;
+	class UMaterialInstanceDynamic* BlurMaterial;
+
 	void AddDashPoint(const int32 Point);
 	void DashAction();
 	void Dash();
@@ -79,7 +97,6 @@ protected:
 
 private:
 	void DamageFlashing();
-
 	void AfterHitObscale();
 	void AfterGoalEvent();
 	void OnFinishedDamage();
@@ -98,13 +115,13 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Cat)
-		class UBoxComponent* BoxComp;
+	class UBoxComponent* BoxComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-		class UCameraComponent* CatCameraComponent;
+	class UCameraComponent* CatCameraComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = SpringArm, meta = (AllowPrivateAccess = "true"))
-		class USpringArmComponent* CatSpringArm;
+	class USpringArmComponent* CatSpringArm;
 
 	bool IsHitObscle()const { return bIsHitObscle; }
 protected:
@@ -116,6 +133,7 @@ protected:
 
 private:
 	void Damage();
+
 	class AMainGameModeBase* GetMainGameMode() const;
 	APlayerController* GetPlayerController() const;
 
@@ -124,8 +142,9 @@ private:
 
 protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Cat")
-		void OnAddDashPointEvent(const int32 CurrentPoint, const int32 MaxPoint,const bool IsNotDashing);
+	void OnAddDashPointEvent(const int32 CurrentPoint, const int32 MaxPoint,const bool IsNotDashing);
+
 	UFUNCTION(BlueprintImplementableEvent, Category = "Cat")
-		void OnDecreaseDashingPointEvent();
+	void OnDecreaseDashingPointEvent();
 
 };

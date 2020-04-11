@@ -12,15 +12,12 @@ class REMAKECATFESTIVAL_API AGhost : public ACharacter
 {
 	GENERATED_BODY()
 
+//GhostDataŠÖ˜A
 private:
-
 	FTimerHandle LoadingTimeHandle;
 
 	UPROPERTY()
 	int32 LoadingGhostCount = 0;
-
-	//UPROPERTY()
-	//class UMainGameInstance* GameInstance;
 	
 	UPROPERTY()
 	FCatGhost LoadGhostData;
@@ -32,6 +29,7 @@ private:
 	class UAnimMontage* DamageAnimation;
 
 	class AMainGameModeBase* GetGameMode();
+
 protected:
 	virtual void BeginPlay()override;
 

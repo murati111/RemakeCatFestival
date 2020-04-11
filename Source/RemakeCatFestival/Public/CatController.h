@@ -16,7 +16,7 @@ class REMAKECATFESTIVAL_API ACatController : public APlayerController
 
 public:
 	UPROPERTY()
-		class AMainGameModeBase* gameMode;
+	class AMainGameModeBase* gameMode;
 
 protected:
 	virtual void BeginPlay() override;

@@ -15,16 +15,16 @@ struct FCatGhost {
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "Cat")
-		float RecordTime;
+	float RecordTime;
 
 	UPROPERTY(EditAnyWhere,BlueprintReadWrite,Category="Cat")
-		TArray<FVector> Positions;
+	TArray<FVector> Positions;
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "Cat")
-		TArray<float> Speeds;
+	TArray<float> Speeds;
 
 	UPROPERTY(EditAnyWhere, BlueprintReadWrite, Category = "Cat")
-		TArray<bool> IsStops;
+	TArray<bool> IsStops;
 };
 
 UCLASS()
@@ -48,7 +48,9 @@ private:
 	float CurrentTime = 0.0f;
 
 	int32 CurrentRank = -1;	
+
 	int32 MaxSaveGame = 3;
+
 	FString SaveSlotName = TEXT("SaveGameSlot");
 
 	void InitialSaveGame();
@@ -59,6 +61,7 @@ protected:
 
 public:
 	bool IsGhostMode() const { return bIsGhostMode; }
+
 	int32 GetCurrentRank() const { return CurrentRank; }
 
 	UFUNCTION(BlueprintPure,Category="GameTime")
@@ -69,16 +72,25 @@ public:
 	FCatGhost GetLoadingGhostData()const { return LoadingGhostData; }
 
 	void SaveGameData();
+
 	UFUNCTION(BlueprintCallable, Category = "GameInstance")
 	void LoadGameDataFromIndex(int32 RankIndex);
 
 	TArray<FCatGhost> LoadGameData();
+
 	void CreateGhostTimesAndDoesGhostDataExists(TArray<float>& RankingTimes, TArray<bool>& DoesGhostDataExists);
+
 	void CreateGhostTimes(TArray<float>& RankingTimes);
+
 	void InitialInstanceValues();
+
 	void RestartInstanceValues();
+
 	static UMainGameInstance* GetInstance();
+
 	void AddGhostData(const FVector Position, const float Speed, const bool IsStop);
+
 	void SetRecordTime();
+
 	virtual void Init() override;
 };

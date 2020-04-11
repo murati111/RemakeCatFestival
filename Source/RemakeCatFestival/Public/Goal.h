@@ -25,15 +25,20 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Goal)
-		class UBoxComponent* BoxComp;
+	class UBoxComponent* BoxComp;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Goal)
-		class USceneComponent* NewRootComponent;
+	class USceneComponent* NewRootComponent;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Goal)
-		FName ActorTag = "Goal";
+	FName ActorTag = "Goal";
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-		class USoundBase* GoalSE;
+	class USoundBase* GoalSE;
+
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "CatInterface")
-		void ReceiveDamage(int32& point);
+	void ReceiveDamage(int32& point);
+
 	virtual void ReceiveDamage_Implementation(int32& point);
 
 };

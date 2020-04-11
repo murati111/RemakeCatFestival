@@ -91,6 +91,7 @@ private:
 	void TimerStop();
 	void RaceStop();
 	void RaceStopForTimeUp();
+
 protected:
 	UFUNCTION(BlueprintCallable, Category = "GameMode")
 	void RaceStart();

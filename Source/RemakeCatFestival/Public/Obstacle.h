@@ -29,9 +29,8 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = Obstacle)
 	FName ActorTag = "Obstacle";
+
 public:
-
-
 	UPROPERTY(VisibleAnyWhere, BlueprintReadWrite, Category = Obstacle)
 	class UStaticMeshComponent* Ramune;
 
