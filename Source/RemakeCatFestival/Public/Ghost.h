@@ -15,11 +15,15 @@ class REMAKECATFESTIVAL_API AGhost : public ACharacter
 private:
 
 	FTimerHandle LoadingTimeHandle;
+
 	UPROPERTY()
 	int32 LoadingGhostCount = 0;
-	UPROPERTY()
-	class UMainGameInstance* GameInstance;
 
+	//UPROPERTY()
+	//class UMainGameInstance* GameInstance;
+	
+	UPROPERTY()
+	FCatGhost LoadGhostData;
 
 	void LoadingGhostData();
 
@@ -42,6 +46,5 @@ public:
 
 	void StartLoadingGhost();
 	void StopLoadingGhost();
-
 	virtual void Tick(float DeltaTime)override;
 };

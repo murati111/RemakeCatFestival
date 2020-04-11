@@ -53,14 +53,15 @@ AGhost::AGhost()
 	GetMesh()->SetRelativeScale3D(FVector(0.25f, 0.25f, 0.25f));
 	GetMesh()->SetRelativeLocation(FVector(0.0f, 0.0f, -90.0f));
 	GetMesh()->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
-	GameInstance = UMainGameInstance::GetInstance();
 }
 
 void AGhost::StartLoadingGhost()
 {
-	if (GetGameMode() == nullptr) { return; }
+	if (GetGameMode() == nullptr || UMainGameInstance::GetInstance()==nullptr) { return; }
+	LoadGhostData = UMainGameInstance::GetInstance()->GetLoadingGhostData();
 	GetWorldTimerManager().SetTimer(LoadingTimeHandle, this, &AGhost::LoadingGhostData, GetGameMode()->GetRecordingDeltaTime(), true);
-	SetActorLocation(GameInstance->GetLoadingGhostData().Positions[LoadingGhostCount]);
+	SetActorLocation(LoadGhostData.Positions[LoadingGhostCount]);
+	UE_LOG(LogTemp, Error, TEXT("StartGhost"));
 }
 
 void AGhost::StopLoadingGhost()
@@ -73,17 +74,17 @@ void AGhost::Tick(float DeltaTime)
 }
 void AGhost::LoadingGhostData()
 {
-	if (GameInstance == nullptr) { return; }
 	LoadingGhostCount++;	
-	if (GameInstance->GetLoadingGhostData().Positions.Max() <= LoadingGhostCount)
+	const int32 MaxLodingCount = LoadGhostData.Positions.Num();
+	if (MaxLodingCount <= LoadingGhostCount)
 	{
 		StopLoadingGhost();
 		return;
 	}
-	SetActorLocation(GameInstance->GetLoadingGhostData().Positions[LoadingGhostCount]);
-	Speed = GameInstance->GetLoadingGhostData().Speeds[LoadingGhostCount];
-	//UE_LOG(LogTemp, Error, TEXT("GhostSpeed %f"), Speed);
-	if (GameInstance->GetLoadingGhostData().IsStops[LoadingGhostCount])
+	SetActorLocation(LoadGhostData.Positions[LoadingGhostCount]);
+	Speed = LoadGhostData.Speeds[LoadingGhostCount];
+	////UE_LOG(LogTemp, Error, TEXT("GhostSpeed %f"), Speed);
+	if (LoadGhostData.IsStops[LoadingGhostCount])
 	{
 		//UE_LOG(LogTemp, Log, TEXT("True"));
 		PlayAnimMontage(DamageAnimation);
