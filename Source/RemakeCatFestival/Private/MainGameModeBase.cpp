@@ -60,9 +60,19 @@ void AMainGameModeBase::TimerStop()
 void AMainGameModeBase::TimerCount()
 {
 	if (GameInstance == nullptr) { return; }
+
+	constexpr float MaxTimeSec = 600.f;
+	if (GameInstance->GetCurrentTime() >= MaxTimeSec)
+	{
+		RaceStopForTimeUp();
+		StopRecording();
+		return;
+	}
 	constexpr float AdditionalTime = 0.01f;
 	GameInstance->AddCurrentTime(AdditionalTime);
 	UpdateTimeCount(GameInstance->GetCurrentTime());
+	
+
 	//UE_LOG(LogTemp, Error, TEXT("Overlap %f"), GameInstance->Time);
 }
 
@@ -94,10 +104,6 @@ void AMainGameModeBase::StopRecording()
 void AMainGameModeBase::RacePrepare_Implementation()
 {
 
-	/*if (PlayerPawn != nullptr && PlayerController != nullptr)
-	{
-		PlayerPawn->DisableInput(PlayerController);
-	}*/
 	if (GetPlayerController() != nullptr && Cat != nullptr)
 	{
 		Cat->DisableInput(GetPlayerController());
@@ -108,8 +114,7 @@ void AMainGameModeBase::RaceStart()
 {
 	if (GameInstance->IsGhostMode()) 
 	{
-		if (GhostClass == nullptr) { return; }
-		if (GetWorld() != nullptr)
+		if (GhostClass != nullptr && GetWorld() != nullptr)
 		{
 			const FRotator SpawnRotation = Cat->GetActorRotation();
 			const FVector SpawnLocation = Cat->GetActorLocation();
@@ -132,8 +137,15 @@ void AMainGameModeBase::RaceStart()
 void AMainGameModeBase::RaceStop()
 {
 	TimerStop();
-	GoalEvent();
+	GoalEvent(false);
 	UE_LOG(LogTemp, Error, TEXT("Race Stop!!!"));
+}
+
+void AMainGameModeBase::RaceStopForTimeUp()
+{
+	TimerStop();
+	GoalEvent(true);
+	UE_LOG(LogTemp, Error, TEXT("TimeUP!!!"));
 }
 
 void AMainGameModeBase::RacePaused()

@@ -95,10 +95,8 @@ void ACat::Tick(float DeltaTime)
 	}
 	else
 	{
-
 		constexpr float MaxFov = 100.f;
 		ChangeFovInSpeed(MaxFov, DefaultMaxSpeed);
-
 	}
 }
 // Called to bind functionality to input

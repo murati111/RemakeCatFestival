@@ -90,6 +90,7 @@ private:
 	void StopRecording();
 	void TimerStop();
 	void RaceStop();
+	void RaceStopForTimeUp();
 protected:
 	UFUNCTION(BlueprintCallable, Category = "GameMode")
 	void RaceStart();
@@ -108,7 +109,7 @@ protected:
 	void RacePrepare();
 
 	UFUNCTION(BlueprintImplementableEvent,Category="GameMode")
-	void GoalEvent();
+	void GoalEvent(bool bIsTimeUp);
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "GameMode")
 	void OnSavedEvent();
